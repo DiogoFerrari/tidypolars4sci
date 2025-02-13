@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tidypolars4sci"
+version = "0.1"
+description = "Tidyverse-like functions for python polars with extended functionalities for science."
+authors = [{name = "Diogo Ferrari", email = "diogoferrari@gmail.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = [
+    "polars",
+]
+
+[tool.setuptools.package-data]
+"tidypolars4sci.data" = ["*.csv"]
+
+[project.urls]
+"Homepage" = "https://github.com/DiogoFerrari/tidypolars4sci"
