@@ -1,9 +1,8 @@
-<p align="center">
- <img src='docs/tidypolars4sci.png'   align="center" height="239" style="float:center; height:339px;"/>
-</p>
+![](https://github.com/DiogoFerrari/tidypolars4sci/blob/master/docs/tidypolars4sci.png)
 
 
-# tidypolars4sci
+# TidyPolars $^{4sci}$
+
 
 <!-- [![PyPI Latest Release](https://img.shields.io/pypi/v/tidypolars4sci.svg)](https://pypi.org/project/tidypolars4sci) -->
 <!-- [![conda-forge](https://anaconda.org/conda-forge/tidypolars4sci/badges/version.svg)](https://anaconda.org/conda-forge/tidypolars4sci) -->

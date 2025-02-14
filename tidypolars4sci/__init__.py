@@ -1,8 +1,9 @@
 try:
     from importlib.metadata import version
-    __version__ = version("tidyversepy")
+    __version__ = version("tidypolars4sci")
 except:
     __version__ = ""
+
 
 from .io import *
 from .funs import *
