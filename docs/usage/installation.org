@@ -1,0 +1,20 @@
+
+** Installation
+:PROPERTIES:
+:CUSTOM_ID: installation
+:END:
+You can install tidypolars4sci with =pip=:
+
+#+begin_src sh
+$ pip3 install tidypolars4sci
+#+end_src
+
+#+RESULTS:
+
+Or through =conda=:
+
+#+begin_src sh
+$ conda install -c conda-forge tidypolars4sci
+#+end_src
+
+#+RESULTS:

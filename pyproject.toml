@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tidypolars4sci"
-version = "0.0.1"
+version = "0.0.1.21"
 description = "Tidyverse-like functions for python polars with extended functionalities for science."
 authors = [{name = "Diogo Ferrari", email = "diogoferrari@gmail.com"}]
 maintainers = [{name = "Diogo Ferrari", email = "diogoferrari@gmail.com"}]
@@ -19,12 +19,12 @@ classifiers = [
   "Topic :: Scientific/Engineering"
 ]
 dependencies = [
-	     "functools",
-	     'itertools',
 	     "numpy",
-	     "operator",
 	     "pandas",
-	     "polars"
+	     "polars",
+	     "pyarrow",
+	     "pyreadr",
+	     "pyreadstat",
 ]
 
 [tool.setuptools.package-data]

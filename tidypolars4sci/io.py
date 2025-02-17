@@ -26,8 +26,14 @@ class read_data():
          
         assert fn, "fn (filepath) must be provided."
 
-        print(f"Loading data '{os.path.basename(fn)}'...",
-              end=" ",  flush=True)
+        if kws.get("silently", None) is not None:
+            silently = kws.get("silently", False)
+            kws.pop("silently")
+        else:
+            silently = False
+        if not silently:
+            print(f"Loading data '{os.path.basename(fn)}'...",
+                  end=" ",  flush=True)
          
         if fn_type=='.csv' or fn_type=='.CSV':
             df =self.read_csv(big_data=big_data, **kws)
@@ -71,10 +77,12 @@ class read_data():
                   "the local API json file for the Google spreadsheet, and the "+
                   "parameter sn with the sheet name in the spreadsheet")
             df = None
-        if big_data:
-            print("done! <--- using dask dataframe for big data")
-        else:
-            print("done!")
+
+        if not silently:
+            if big_data:
+                print("done! <--- using dask dataframe for big data")
+            else:
+                print("done!")
         return df
     
     def read_csv (big_data, **kws):
@@ -161,7 +169,7 @@ class read_data():
     def read_dat (big_data, **kws):
         fn=kws.get('fn')
         kws.pop('fn')
-        kws['sep']="\s+"
+        kws['sep']="\\s+"
         if not big_data:
             df = pd.read_csv(fn, **kws)
         else:

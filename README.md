@@ -1,11 +1,6 @@
-![](https://github.com/DiogoFerrari/tidypolars4sci/blob/master/docs/tidypolars4sci.png)
-
+![](https://github.com/DiogoFerrari/tidypolars4sci/blob/master/docs/tidypolars4sci.png?raw=True)
 
 # TidyPolars $^{4sci}$
-
-
-<!-- [![PyPI Latest Release](https://img.shields.io/pypi/v/tidypolars4sci.svg)](https://pypi.org/project/tidypolars4sci) -->
-<!-- [![conda-forge](https://anaconda.org/conda-forge/tidypolars4sci/badges/version.svg)](https://anaconda.org/conda-forge/tidypolars4sci) -->
 
 **tidypolars4sci** provides functions that match as closely as possible to R's [Tidyverse](https://www.tidyverse.org/) functions for manipulating data frames and conducting data analysis in Python using the blazingly fast [Polars](https://github.com/pola-rs/polars) as backend.
 

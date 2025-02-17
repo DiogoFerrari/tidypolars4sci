@@ -4,7 +4,7 @@ from ..io import read_data
 DATA_DIR = Path(__file__).parent
 
 def __load_mtcars__():
-    mtcars = read_data(fn=DATA_DIR / "mtcars.csv", sep=',')
+    mtcars = read_data(fn=DATA_DIR / "mtcars.csv", sep=',', silently=True)
     mtcars.__doc__ = """
     Motor Trend Car Road Tests
 
@@ -40,3 +40,5 @@ def __load_mtcars__():
     models interactively. *Biometrics*, **37**, 391–411.
     """
     return mtcars
+
+

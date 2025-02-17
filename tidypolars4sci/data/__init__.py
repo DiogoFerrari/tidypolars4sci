@@ -11,6 +11,6 @@ __all__ = (
 
 DATA_DIR = Path(__file__).parent
 
-diamonds = __load_diamonds__()
 mtcars = __load_mtcars__()
+diamonds = __load_diamonds__()
 starwars = __load_starwars__()

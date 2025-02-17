@@ -4,7 +4,7 @@ from ..io import read_data
 DATA_DIR = Path(__file__).parent
 
 def __load_starwars__():
-    starwars = read_data(fn=DATA_DIR / "starwars.rda", sep=',')
+    starwars = read_data(fn=DATA_DIR / "starwars.rda", sep=',', silently=True)
     starwars.__doc__ = """
     Starwars characters dataset.
 
@@ -46,3 +46,4 @@ def __load_starwars__():
     """
     return starwars
 
+# starwars = __load_starwars__()

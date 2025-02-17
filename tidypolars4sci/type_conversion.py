@@ -48,7 +48,7 @@ def as_factor(x, levels = None):
     x : Str
         Column to operate on
 
-    level : list of str
+    levels : list of str
         Categories to use in the factor. The catogories will be ordered
         as they appear in the list. If None (default), it will
         create an unordered factor (polars Categorical).

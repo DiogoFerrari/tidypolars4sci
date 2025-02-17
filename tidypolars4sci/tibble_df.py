@@ -1,13 +1,12 @@
 import polars as pl
 import functools as ft
-from .utils import (
-    _as_list,
-    _col_expr,
-    _col_exprs,
-    _kwargs_as_exprs,
-    _mutate_cols,
-    _uses_by
-)
+from .utils import (_as_list,
+                    _col_expr,
+                    _col_exprs,
+                    _kwargs_as_exprs,
+                    _mutate_cols,
+                    _uses_by
+                    )
 from .funs import map
 from .stringr import str_c
 from .stats import *
@@ -16,7 +15,6 @@ from .type_conversion import *
 from .helpers import everything, matches, DescCol, desc
 import copy
 from operator import not_
-# to supress polars' 'warning of dtype in the nested data operations
 import numpy as np
 import pandas as pd
 import re
@@ -33,35 +31,27 @@ class tibble(pl.DataFrame):
     """
     A data frame object that provides methods familiar to R tidyverse users.
     """
-    # def __init__(self, _data = None, **kwargs):
-    #     if len(kwargs) > 0:
-    #         _data = kwargs
-    #     elif not_(isinstance(_data, dict)):
-    #         raise ValueError("_data must be a dictionary or kwargs must be used")
-    #     super().__init__(_data)
-    
     def __init__(self,  *args, **kwargs):
-        # super(tibble, self).__init__(*args, **kwargs)
         super().__init__(*args, **kwargs)
 
     @property
     def _constructor(self):
-        '''
-        This method ensures that the method tibble return an instance
-        of tibble, instead of a DataFrame
-        '''
+        # '''
+        # This method ensures that the method tibble return an instance
+        # of tibble, instead of a DataFrame
+        # '''
         return self.__class__
 
     def _repr_html_(self):
-        """
-        Printing method for jupyter
+        # """
+        # Printing method for jupyter
 
-        Output rows and columns can be modified by setting the following ENVIRONMENT variables:
+        # Output rows and columns can be modified by setting the following ENVIRONMENT variables:
 
-        * POLARS_FMT_MAX_COLS: set the number of columns
+        # * POLARS_FMT_MAX_COLS: set the number of columns
 
-        * POLARS_FMT_MAX_ROWS: set the number of rows
-        """
+        # * POLARS_FMT_MAX_ROWS: set the number of rows
+        # """
         df = self.to_polars()
         return df._repr_html_()
 
@@ -109,9 +99,13 @@ class tibble(pl.DataFrame):
         >>> df = tp.tibble({'x': ['a', 'a', 'b'], 'y': range(3)})
         >>> # Arrange in ascending order
         >>> df.arrange('x', 'y')
-        ...
         >>> # Arrange some columns descending
         >>> df.arrange(tp.desc('x'), 'y')
+
+        Returns
+        ------- 
+        tibble
+            Original tibble orderd by *args
         """
         exprs = _as_list(args)
         desc = [True if isinstance(expr, DescCol) else False for expr in exprs]
@@ -125,8 +119,14 @@ class tibble(pl.DataFrame):
 
         Parameters
         ----------
-        df : tibble
+        *args : tibble
             Data frame to bind
+
+        Returns
+        ------- 
+        tibble
+            The original tibble with added columns 
+            from the other tibble specified in *args
 
         Examples
         --------
@@ -149,6 +149,12 @@ class tibble(pl.DataFrame):
         *args : tibble, list
             Data frames to bind by row
 
+        Returns
+        ------- 
+        tibble
+            The original tibble with added rows 
+            from the other tibble specified in *args
+
         Examples
         --------
         >>> df1 = tp.tibble({'x': ['a', 'a', 'b'], 'y': range(3)})
@@ -160,7 +166,9 @@ class tibble(pl.DataFrame):
         return out.pipe(from_polars)
 
     def clone(self):
-        """Very cheap deep clone"""
+        """
+        Very cheap deep clone
+        """
         return super().clone().pipe(from_polars)
 
     def count(self, *args, sort = False, name = 'n'):
@@ -177,11 +185,35 @@ class tibble(pl.DataFrame):
         name : str
             The name of the new column in the output. If omitted, it will default to "n".
 
+        Returns
+        ------- 
+        tibble
+            If no agument is provided, just return the nomber of rows.
+            If column names are provided, it will count the unique 
+            values across columns
+
         Examples
         --------
-        >>> df = tp.tibble({'a': range(3), 'b': ['a', 'a', 'b']})
+        >>> df = tp.tibble({'a': [1, 1, 2, 3],
+        ...:                 'b': ['a', 'a', 'b', 'b']})
         >>> df.count()
-        >>> df.count('b')
+        shape: (1, 1)
+        ┌─────┐
+        │   n │
+        │ u32 │
+        ╞═════╡
+        │   4 │
+        └─────┘
+        >>> df.count('a', 'b')
+        shape: (3, 3)
+        ┌─────────────────┐
+        │   a   b       n │
+        │ i64   str   u32 │
+        ╞═════════════════╡
+        │   1   a       2 │
+        │   2   b       1 │
+        │   3   b       1 │
+        └─────────────────┘
         """
         args = _as_list(args)
         
@@ -201,10 +233,14 @@ class tibble(pl.DataFrame):
         *args : str, Expr
             Columns to find distinct/unique rows
 
-        **kwargs : dict
-            keep_all : boll
-              If True, keep all columns. Otherwise, return
-              only the ones used to select the distinct rows.
+        keep_all : boll
+            If True, keep all columns. Otherwise, return
+            only the ones used to select the distinct rows.
+
+        Returns
+        ------- 
+        tibble
+            Tibble after removing the repeated rows based on *args
 
         Examples
         --------
@@ -231,6 +267,11 @@ class tibble(pl.DataFrame):
         *args : str
             Columns to drop
 
+        Returns
+        ------- 
+        tibble
+            Tibble with columns in *args dropped
+
         Examples
         --------
         >>> df.drop('x', 'y')
@@ -248,6 +289,11 @@ class tibble(pl.DataFrame):
         *args : str
             Columns to drop nulls from (defaults to all)
 
+        Returns
+        ------- 
+        tibble
+            Tibble with rows in *args with missing values dropped
+
         Examples
         --------
         >>> df = tp.tibble(x = [1, None, 3], y = [None, 'b', 'c'], z = range(3)}
@@ -262,13 +308,17 @@ class tibble(pl.DataFrame):
         return out.pipe(from_polars)
     
     def equals(self, other, null_equal = True):
-        """Check if two tibbles are equal"""
+        """
+        Check if two tibbles are equal
+        """
         df = self.to_polars()
         other = other.to_polars()
         return df.equals(other, null_equal = null_equal)
     
     def head(self, n = 5, *, by = None):
-        """Alias for `.slice_head()`"""
+        """
+        Alias for `.slice_head()`
+        """
         return self.slice_head(n, by = by)
 
     def fill(self, *args, direction = 'down', by = None):
@@ -283,6 +333,11 @@ class tibble(pl.DataFrame):
             Direction to fill. One of ['down', 'up', 'downup', 'updown']
         by : str, list
             Columns to group by
+
+        Returns
+        ------- 
+        tibble
+            Tibble with missing values filled
 
         Examples
         --------
@@ -329,6 +384,11 @@ class tibble(pl.DataFrame):
         by : str, list
             Columns to group by
 
+        Returns
+        ------- 
+        tibble
+            A tibble with rows that match condition.
+
         Examples
         --------
         >>> df = tp.tibble({'a': range(3), 'b': ['a', 'a', 'b']})
@@ -363,6 +423,12 @@ class tibble(pl.DataFrame):
         suffix : str
             Suffix to append to columns with a duplicate name.
 
+        Returns
+        ------- 
+        tibble
+            A tibble with intersection of cases in the original and
+            df tibbles.
+
         Examples
         --------
         >>> df1.inner_join(df2)
@@ -371,7 +437,10 @@ class tibble(pl.DataFrame):
         """
         if (left_on == None) & (right_on == None) & (on == None):
             on = list(set(self.names) & set(df.names))
-        return super().join(df, on, 'inner', left_on = left_on, right_on= right_on, suffix= suffix).pipe(from_polars)
+        return super().join(df, on, 'inner',
+                            left_on = left_on,
+                            right_on= right_on,
+                            suffix= suffix).pipe(from_polars)
 
     def left_join(self, df, left_on = None, right_on = None, on = None, suffix = '_right'):
         """
@@ -389,6 +458,13 @@ class tibble(pl.DataFrame):
             Join column(s) of both DataFrames. If set, `left_on` and `right_on` should be None.
         suffix : str
             Suffix to append to columns with a duplicate name.
+
+        Returns
+        ------- 
+        tibble
+             The original tibble with added columns from tibble df if
+             they match columns in the original one. Columns to match
+             on are given in the function parameters.
 
         Examples
         --------
@@ -413,6 +489,11 @@ class tibble(pl.DataFrame):
         **kwargs : Expr
             Column expressions to add or modify
 
+        Returns
+        ------- 
+        tibble
+            Original tibble with new column created.
+        
         Examples
         --------
         >>> df = tp.tibble({'a': range(3), 'b': range(3), c = ['a', 'a', 'b']})
@@ -435,6 +516,11 @@ class tibble(pl.DataFrame):
     def names(self):
         """
         Get column names
+
+        Returns
+        ------- 
+        list
+            Names of the columns
         
         Examples
         --------
@@ -446,6 +532,11 @@ class tibble(pl.DataFrame):
     def ncol(self):
         """
         Get number of columns
+
+        Returns
+        ------- 
+        int
+            Number of columns
         
         Examples
         --------
@@ -458,6 +549,11 @@ class tibble(pl.DataFrame):
         """
         Get number of rows
         
+        Returns
+        ------- 
+        int
+            Number of rows
+
         Examples
         --------
         >>> df.nrow
@@ -481,6 +577,13 @@ class tibble(pl.DataFrame):
         suffix : str
             Suffix to append to columns with a duplicate name.
 
+        Returns
+        ------- 
+        tibble
+            Union between the original and the df tibbles. The
+            rows that don't match in one of the tibbles will be
+            completed with missing values.
+
         Examples
         --------
         >>> df1.full_join(df2)
@@ -489,7 +592,9 @@ class tibble(pl.DataFrame):
         """
         if (left_on == None) & (right_on == None) & (on == None):
             on = list(set(self.names) & set(df.names))
-        return super().join(df, on, 'outer',  left_on = left_on, right_on= right_on, suffix= suffix).pipe(from_polars)
+        return super().join(df, on, 'outer',
+                            left_on = left_on,
+                            right_on= right_on, suffix= suffix).pipe(from_polars)
 
     def pivot_longer(self,
                      cols = None,
@@ -506,6 +611,11 @@ class tibble(pl.DataFrame):
             Name of the new "names" column.
         values_to: str
             Name of the new "values" column
+
+        Returns
+        ------- 
+        tibble
+            Original tibble, but in long format.
 
         Examples
         --------
@@ -551,6 +661,11 @@ class tibble(pl.DataFrame):
             If values are missing/null, what value should be filled in.
             Can use: "backward", "forward", "mean", "min", "max", "zero", "one"
 
+        Returns
+        ------- 
+        tibble
+            Original tibble, but in wide format.
+
         Examples
         --------
         >>> df = tp.tibble({'id': [1, 1], 'variable': ['a', 'b'], 'value': [1, 2]})
@@ -592,6 +707,11 @@ class tibble(pl.DataFrame):
         var : str
             Name of the column to extract. Defaults to the last column.
 
+        Returns
+        ------- 
+        Series
+            The series will contain the values of the column from `var`.
+
         Examples
         --------
         >>> df = tp.tibble({'a': range(3), 'b': range(3))
@@ -613,6 +733,12 @@ class tibble(pl.DataFrame):
 
         ref : str
            Reference level
+
+        Returns
+        ------- 
+        tibble
+            The original tibble with the column specified in `x` as
+            an ordered factors, with first category specified in `ref`.
         """
         levels = self.pull(x).unique().to_list()
         relevels = [ref] + [l for l in levels if l != ref]
@@ -627,6 +753,11 @@ class tibble(pl.DataFrame):
         ----------
         *args : str, Expr
             Columns to move
+
+        Returns
+        ------- 
+        tibble
+            Original tibble with columns relocated.
 
         Examples
         --------
@@ -684,6 +815,11 @@ class tibble(pl.DataFrame):
         tolower : bool, default False
             If True, convert all to lower case
 
+        Returns
+        ------- 
+        tibble
+            Original tibble with columns renamed.
+
         Examples
         --------
         >>> df = tp.tibble({'x': range(3), 't': range(3), 'z': ['a', 'a', 'b']})
@@ -725,6 +861,11 @@ class tibble(pl.DataFrame):
         replace : dict
             Dictionary of column/replacement pairs
 
+        Returns
+        -------
+        tibble
+            Original tibble with missing/null values replaced.
+
         Examples
         --------
         >>> df = tp.tibble(x = [0, None], y = [None, None])
@@ -750,6 +891,11 @@ class tibble(pl.DataFrame):
             Separator to split on. Default to '_'
         remove : bool
             If True removes the input column from the output data frame
+
+        Returns
+        -------
+        tibble
+            Original tibble with a column splitted based on `sep`.
 
         Examples
         --------
@@ -802,14 +948,14 @@ class tibble(pl.DataFrame):
             Columns to select. It can combine names, list of names,
             and a dict. If dict, it will rename the columns based
             on the dict.
-            If the column does not exist
+            It also accepts tp.matches(<regex>) and tp.contains(<str>)
 
         Examples
         --------
-        >>> df = tp.tibble({'a': range(3), 'b': range(3), 'c': ['a', 'a', 'b']})
+        >>> df = tp.tibble({'a': range(3), 'b': range(3), 'abcba': ['a', 'a', 'b']})
         >>> df.select('a', 'b')
         >>> df.select(col('a'), col('b'))
-        >>> df.select({'a': 'new name'})
+        >>> df.select({'a': 'new name'}, tp.matches("c"))
         """
         # convert to list if dict.keys or dict.values are used
         cols_to_select = []
@@ -963,6 +1109,12 @@ class tibble(pl.DataFrame):
         **kwargs : Expr
             Column expressions to add or modify
 
+        Returns
+        -------
+        tibble
+            A tibble with the summaries
+
+
         Examples
         --------
         >>> df = tp.tibble({'a': range(3), 'b': range(3), 'c': ['a', 'a', 'b']})
@@ -1082,12 +1234,27 @@ class tibble(pl.DataFrame):
         return super().write_parquet(file, compression = compression, use_pyarrow = use_pyarrow, **kwargs)
 
     def group_by(self, group, *args, **kwargs):
+        """
+        Takes an existing tibble and converts it into a grouped tibble
+        where operations are performed "by group". ungroup() happens
+        automatically after the operation is performed.
+
+        Parameters
+        ---------- 
+        group : str, list
+            Variable names to group by.
+
+        Returns
+        -------
+        Grouped tibble
+            A tibble with values grouped by one or more columns.
+        """
         res = TibbleGroupBy(self, group, maintain_order=True)
         return res
     
     def nest(self, by, *args, **kwargs):
         """
-        Nest rows into a list-column of dataframes
+        creates a nested tibble
 
         Parameters
         ----------
@@ -1111,8 +1278,12 @@ class tibble(pl.DataFrame):
                 This makes names_sep roughly
                 symmetric between nesting and unnesting.
 
-        Examples
-        --------
+        Returns
+        -------
+        tibble
+            The resulting tibble with have a column that contains
+            nested tibbles
+
         """
         key  = kwargs.get("key", 'data')
         data = kwargs.get("data", [c for c in self.names if c not in by])
@@ -1128,7 +1299,6 @@ class tibble(pl.DataFrame):
                })
                .pipe(from_polars)
                )
-
         # to keep enum order in the nested data
         # enum_columns = [col for col in self.select(data).names
         #                 if self.pull(col).dtype == pl.Enum]
@@ -1139,8 +1309,6 @@ class tibble(pl.DataFrame):
         #         out = out.mutate(**{key : map([key], lambda row:
         #                                       row[0].mutate(col = as_factor(col, cats) )
         #                                       }
-
-
         # # to keep factors
         # factors = [col for col in self.select(data).names
         #                 if self.pull(col).dtype == pl.Categorical]
@@ -1157,11 +1325,17 @@ class tibble(pl.DataFrame):
 
     def unnest(self, col):
         """
-        Unnest a nested data frame
+        Unnest a nested tibble
         Parameters
         ----------
         col : str
             Columns to unnest
+
+        Returns
+        -------
+        tibble
+            The nested tibble will be expanded and become unested
+            rows of the original tibble.
 
         """
         assert isinstance(col, str), "'col', must be a string"
@@ -1188,8 +1362,50 @@ class tibble(pl.DataFrame):
 
     def crossing(self, *args, **kwargs):
         """
-        Expand the data set using a list of values. Each value in the
-        list
+        Expands the existing tibble for each value of the
+        variables used in the `crossing()` argument. See Returns.
+
+        Parameters
+        ----------
+        *args : list
+            One unamed list is accepted. 
+        
+        *kwargs : list
+            keyword will be the variable name, and the values in the list
+            will be in the expanded tibble
+            
+        Returns
+        ------- 
+        tibble
+            A tibble with varibles containing all combinations of the
+            values in the arguments passed to `crossing()`. The original
+            tibble will be replicated for each unique combination.
+
+        Examples
+        -------- 
+        >>> df = tp.tibble({'a': [1, 2], "b": [3, 5]})
+        >>> df
+        shape: (2, 2)
+        ┌───────────┐
+        │   a     b │
+        │ i64   i64 │
+        ╞═══════════╡
+        │   1     3 │
+        │   2     5 │
+        └───────────┘
+        >>> df.crossing(c = ['a', 'b', 'c'])
+        shape: (6, 3)
+        ┌─────────────────┐
+        │   a     b   c   │
+        │ i64   i64   str │
+        ╞═════════════════╡
+        │   1     3   a   │
+        │   1     3   b   │
+        │   1     3   c   │
+        │   2     5   a   │
+        │   2     5   b   │
+        │   2     5   c   │
+        └─────────────────┘
         """
         out = self.mutate(*args, **kwargs).to_polars()
         for var,_ in kwargs.items():
@@ -1197,7 +1413,8 @@ class tibble(pl.DataFrame):
         return out.pipe(from_polars)
 
     def glimpse(self, regex='.'):
-        """Print compact information about the data
+        """
+        Print compact information about the data
 
         Parameters
         ----------
@@ -1287,19 +1504,25 @@ class tibble(pl.DataFrame):
     # -------------------------------------------------
     def replace(self, rep, regex=False):
         """
-        Replace method from polars
+        Replace method from polars pandas. Replaces values of a column.
 
         Parameters
         ----------
         rep : dict
-           Format to use polars' replace:
-               {<varname>:{<old value>:<new value>, ...}}
-           Format to use pandas' replace:
-               {<old value>:<new value>, ...}
+            Format to use polars' replace:
+                {<varname>:{<old value>:<new value>, ...}}
+            Format to use pandas' replace:
+                {<old value>:<new value>, ...}
 
-        regexp : bool
-           If true, replace using regular expression. It uses pandas
-           replace.
+        regex : bool
+            If true, replace using regular expression. It uses pandas
+            replace()
+
+        Returns
+        -------
+        tibble
+            Original tibble with values of columns replaced based on
+            rep`.
         """
         if regex or not all(isinstance(value, dict) for value in rep.values()):
             engine = 'pandas'
@@ -1321,11 +1544,28 @@ class tibble(pl.DataFrame):
                     
         return out
         
-    def print(self, n=1000, str_length=1000):
+    def print(self, n=1000, ncols=1000, str_length=1000, digits=2):
         """
         Print the DataFrame
+
+        Parameters
+        ----------
+        n : int, default=1000
+            Number of rows to print
+
+        ncols : int, default=1000
+            Number of columns to print
+
+        str_length : int, default=1000
+            Maximum length of the strings.
+
+        Returns
+        -------
+        None
         """
         with pl.Config(set_tbl_rows=n,
+                       set_tbl_cols=ncols,
+                       float_precision=digits,
                        fmt_str_lengths=str_length):
             print(self)
 
@@ -1334,7 +1574,44 @@ class tibble(pl.DataFrame):
     def descriptive_statistics(self, vars=None, groups=None,
                                include_categorical=True,
                                include_type=False):
+        """
+        Compute descriptive statistics for numerical variables and optionally
+        frequency statistics for categorical variables, with support for grouping.
 
+        Parameters
+        ----------
+        vars : str, list, dict, or None, default None
+            The variables for which to compute statistics.
+            - If None, all variables in the dataset (as given by `self.names`) are used.
+            - If a string, it is interpreted as a single variable name.
+            - If a list, each element is treated as a variable name.
+            - If a dict, keys are variable names and values are their labels.
+        groups : str, list, dict, or None, default None
+            Variable(s) to group by when computing statistics.
+            - If None, overall statistics are computed.
+            - If a string, it is interpreted as a single grouping variable.
+            - If a list, each element is treated as a grouping variable.
+            - If a dict, keys are grouping variable names and values are their labels.
+        include_categorical : bool, default True
+            Whether to include frequency statistics for categorical variables in the output.
+        include_type : bool, default False
+            If True, adds a column indicating the variable type ("Num" for numerical, "Cat" for categorical).
+
+        Returns
+        -------
+        tibble
+            A tibble containing the descriptive statistics.
+            For numerical variables, the statistics include:
+                - N: count of non-missing values
+                - Missing (%): percentage of missing values
+                - Mean: average value
+                - Std.Dev.: standard deviation
+                - Min: minimum value
+                - Max: maximum value
+            If grouping is specified, these statistics are computed for each group.
+            When `include_categorical` is True, frequency statistics for categorical variables are appended
+            to the result.
+        """
         assert isinstance(vars, str) or isinstance(vars, list) or \
             isinstance(vars, dict) or vars is None, \
             "'vars' must be a string, dict, or list"
@@ -1423,7 +1700,7 @@ class tibble(pl.DataFrame):
 
     def freq(self, vars=None, groups=None, na_rm=False, na_label=None):
         """
-        Compute frequency and marginal frequency (conditional on).
+        Compute frequency table.
 
         Parameters
         ----------
@@ -1441,12 +1718,13 @@ class tibble(pl.DataFrame):
         na_rm : bool, optional
             Whether to include NAs in the calculation. Defaults to False.
 
-        na_label: str
+        na_label : str
             Label to use for the NA values
         
         Returns
         -------
         tibble
+            A tibble with relative frequencies and counts.
         """
         assert vars, "Parameter 'vars' not informed."
         assert isinstance(groups, str) or \
@@ -1539,38 +1817,47 @@ class tibble(pl.DataFrame):
             margins=True, normalize='all',#row/columns
             margins_name='Total', stat='both',
             na_rm=True, na_label='NA', digits=2):
-        '''
-        Create a 2x2 table
+        """
+        Create a 2x2 contingency table for two categorical variables, with optional grouping,
+        margins, and normalization.
 
-        Input
-           row   string with variable name to go to rows
+        Parameters
+        ----------
+        row : str
+            Name of the variable to be used for the rows of the table.
+        col : str
+            Name of the variable to be used for the columns of the table.
+        groups : str or list of str, optional
+            Variable name(s) to use as grouping variables. When provided, a separate 2x2 table
+            is generated for each group.
+        margins : bool, default True
+            If True, include row and column totals (margins) in the table.
+        normalize : {'all', 'row', 'columns'}, default 'all'
+            Specifies how to compute the marginal percentages in each cell:
+              - 'all': percentages computed over the entire table.
+              - 'row': percentages computed across each row.
+              - 'columns': percentages computed down each column.
+        margins_name : str, default 'Total'
+            Name to assign to the row and column totals.
+        stat : {'both', 'perc', 'n'}, default 'both'
+            Determines the statistic to display in each cell:
+              - 'both': returns both percentages and sample size.
+              - 'perc': returns percentages only.
+              - 'n': returns sample size only.
+        na_rm : bool, default True
+            If True, remove rows with missing values in the `row` or `col` variables.
+        na_label : str, default 'NA'
+            Label to use for missing values when `na_rm` is False.
+        digits : int, default 2
+            Number of digits to round the percentages to.
 
-           col   string with variable name to go to columns
-
-           groups string or list with variable names to use as grouping variables.
-                  It will generate one 2x2 table per groups
-
-           margins bool. It True, return the rows and column totals
-
-           normalize Either 'all', 'row', or 'columns'. Indicate how to 
-                     compute the marginal percentages in each cell
-
-           margins_name string with the name of the row and column totals
-
-           stat : str
-               One of 'both' to return percentages and sample size,
-                      'perc' to return percentages only
-                      'n' to return the sample size only
-
-           na_rm : bool (default True)
-               If True, include NA values
-
-           na_label str
-              Label for the mising values. Default 'NA'
-
-           digits : int
-              with the number of digits to use
-        '''
+        Returns
+        -------
+        tibble
+            A contingency table as a tibble. The table contains counts and/or percentages as specified
+            by the `stat` parameter, includes margins if requested, and is formatted with group headers
+            when grouping variables are provided.
+        """
         tab = self.select(row, col, groups).mutate(**{row:as_character(row),
                                                       col:as_character(col)})
         vars_row = row
@@ -1697,86 +1984,86 @@ class tibble(pl.DataFrame):
         """
         Convert the object to a LaTeX tabular representation.
 
-        Parameters:
+        Parameters
         ----------
-            header : list of tuples, optional
-                The column headers for the LaTeX table. Each tuple corresponds to a column.
-                Ex: This will create upper level header with grouped columns
-                    [("", "col 1"),
-                     ("Group A", "col 2"),
-                     ("Group A", "col 3"),
-                     ("Group B", "col 4")
-                     ("Group B", "col 5"),
-                      ]
-                    This will create two upper level header with grouped columns
-                    [("Group 1", ""       , "col 1"),
-                     ("Group 1", "Group A", "col 2"),
-                     ("Group 1", "Group A", "col 3"),
-                     (""       , "Group B", "col 4")
-                     (""       , "Group B", "col 5"),
-                      ]
-            digits : int, default=4
-                Number of decimal places to round the numerical values in the table.
+        header : list of tuples, optional
+            The column headers for the LaTeX table. Each tuple corresponds to a column.
+            Ex: This will create upper level header with grouped columns
+                [("", "col 1"),
+                 ("Group A", "col 2"),
+                 ("Group A", "col 3"),
+                 ("Group B", "col 4")
+                 ("Group B", "col 5"),
+                  ]
+                This will create two upper level header with grouped columns
+                [("Group 1", ""       , "col 1"),
+                 ("Group 1", "Group A", "col 2"),
+                 ("Group 1", "Group A", "col 3"),
+                 (""       , "Group B", "col 4")
+                 (""       , "Group B", "col 5"),
+                  ]
+        digits : int, default=4
+            Number of decimal places to round the numerical values in the table.
 
-            caption : str, optional
-                The caption for the LaTeX table.
+        caption : str, optional
+            The caption for the LaTeX table.
 
-            label : str, optional
-                The label for referencing the table in LaTeX.
+        label : str, optional
+            The label for referencing the table in LaTeX.
 
-            align : str, optional
-                Column alignment specifications (e.g., 'lcr').
+        align : str, optional
+            Column alignment specifications (e.g., 'lcr').
 
-            na_rep : str, default=''
-                The representation for NaN values in the table.
+        na_rep : str, default=''
+            The representation for NaN values in the table.
 
-            position : str, default='!htbp'
-                The placement option for the table in the LaTeX document.
+        position : str, default='!htbp'
+            The placement option for the table in the LaTeX document.
 
-            footnotes : dict, optional
-                A dictionary where keys are column alignments ('c', 'r', or 'l')
-                and values are the respective footnote strings.
+        footnotes : dict, optional
+            A dictionary where keys are column alignments ('c', 'r', or 'l')
+            and values are the respective footnote strings.
 
-            group_rows_by : str, default=None
-                Name of the variable in the data with values to group
-                the rows by.
+        group_rows_by : str, default=None
+            Name of the variable in the data with values to group
+            the rows by.
 
-            group_title_align str, default='l'
-                Alignment of the title of each row group
+        group_title_align str, default='l'
+            Alignment of the title of each row group
 
-            index : bool, default=False
-                Whether to include the index in the LaTeX table.
+        index : bool, default=False
+            Whether to include the index in the LaTeX table.
 
-            escape : bool, default=False
-                Whether to escape LaTeX special characters.
+        escape : bool, default=False
+            Whether to escape LaTeX special characters.
 
-            longtable : bool, deafult=False
-                If True, table spans multiple pages
+        longtable : bool, deafult=False
+            If True, table spans multiple pages
 
-            longtable_singlespace : bool
-                Force single space to longtables
+        longtable_singlespace : bool
+            Force single space to longtables
 
-            rotate : bool
-                Whether to use landscape table
+        rotate : bool
+            Whether to use landscape table
 
-            scale : bool, default=True
-                If True, scales the table to fit the linewidth when
-                the table exceeds that size
-                Note: ignored when longtable=True. This is a LaTeX
-                      limitation because longtable does not use
-                      tabular.
+        scale : bool, default=True
+            If True, scales the table to fit the linewidth when
+            the table exceeds that size
+            Note: ignored when longtable=True. This is a LaTeX
+                  limitation because longtable does not use
+                  tabular.
 
-            parse_linebreaks : book, default=True
-                If True, parse \\n and replace it with \\makecel
-                to produce linebreaks
+        parse_linebreaks : book, default=True
+            If True, parse \\n and replace it with \\makecel
+            to produce linebreaks
 
-            tabular : bool, default=False
-                Whether to use a tabular format for the output.
+        tabular : bool, default=False
+            Whether to use a tabular format for the output.
 
-        Returns:
-        --------
+        Returns
+        -------
             str
-                A LaTeX formatted string of the object.
+                A LaTeX formatted string of the tibble.
         """
 
         assert footnotes is None or isinstance(footnotes, dict),\
@@ -1869,15 +2156,14 @@ class tibble(pl.DataFrame):
         return tabl
 
     def __to_latex_process_header_line_for_cmid__(self, line: str) -> str:
-        """
-        Given a header line (without the trailing newline),
-        parse for multicolumn commands and generate a line of cmidrule(s)
-        based on the non-empty group labels.
+        # Given a header line (without the trailing newline),
+        # parse for multicolumn commands and generate a line of cmidrule(s)
+        # based on the non-empty group labels.
 
-        Example:
-          Input line: r"\\multicolumn{3}{c}{Combine} & \\multicolumn{3}{c}{} \\"
-          Output: r"\\cmidrule(lr){1-3} \\"
-        """
+        # Example:
+        #   Input line: r"\\multicolumn{3}{c}{Combine} & \\multicolumn{3}{c}{} \\"
+        #   Output: r"\\cmidrule(lr){1-3} \\"
+
         # Remove trailing "\\" if present
         line_clean = line.strip()
         if line_clean.endswith(r'\\'):
@@ -1914,13 +2200,11 @@ class tibble(pl.DataFrame):
             return ""
 
     def __to_latex_add_midrules_to_table__(self, latex_table: str) -> str:
-        """
-        Given a LaTeX table (as a string) that uses booktabs commands,
-        insert automatically generated cmidrule lines for header rows that
-        contain multicolumn cells.
+        # Given a LaTeX table (as a string) that uses booktabs commands,
+        # insert automatically generated cmidrule lines for header rows that
+        # contain multicolumn cells.
 
-        Assumes that the header is contained between the \\toprule and the first \\midrule.
-        """
+        # Assumes that the header is contained between the \\toprule and the first \\midrule.
         lines = latex_table.splitlines()
         new_lines = []
         in_header = False
@@ -1997,20 +2281,19 @@ class tibble(pl.DataFrame):
         return tabl
     
     def __to_latex_extract_header__(self, latex_table: str) -> str:
-        """
-        Extract the header section from a LaTeX table.
+        # Extract the header section from a LaTeX table.
 
-        The header is defined as the text between the first occurrence of
-        '\\toprule' and '\\midrule'. This function returns that section
-        as a single string.
+        # The header is defined as the text between the first occurrence of
+        # '\\toprule' and '\\midrule'. This function returns that section
+        # as a single string.
 
-        Parameters:
-          latex_table (str): The complete LaTeX table as a string.
+        # Parameters:
+        #   latex_table (str): The complete LaTeX table as a string.
 
-        Returns:
-          str: The header lines between '\\toprule' and '\\midrule', with
-               surrounding whitespace removed.
-        """
+        # Returns:
+        #   str: The header lines between '\\toprule' and '\\midrule', with
+        #        surrounding whitespace removed.
+
         # Use re.DOTALL so that '.' matches newline characters.
         pattern = re.compile(r'\\toprule\s*(.*?)\s*\\midrule', re.DOTALL)
         match = pattern.search(latex_table)
@@ -2046,11 +2329,10 @@ class tibble(pl.DataFrame):
         return rows
 
     def __to_latex_group_rows_starting_positions__(self, rows):
-        """
-        Given a list of LaTeX table rows, returns the index of the first row
-        containing '\\midrule' after the last occurrence of a row containing '\\toprule'.
-        If either token is not found, the function returns None.
-        """
+        # Given a list of LaTeX table rows, returns the index of the first row
+        # containing '\\midrule' after the last occurrence of a row containing '\\toprule'.
+        # If either token is not found, the function returns None.
+
         last_top_index = -1
         res = None
 
@@ -2071,8 +2353,6 @@ class tibble(pl.DataFrame):
 
     def __to_latex_group_rows_ending_positions__(self, rows, position_first_row):
         last_table_row_index = -1
-
-        # Iterate over rows to find the last index containing '\toprule'
         for i, row in enumerate(rows[position_first_row:]):
             if r'\bottomrule' in row:
                 last_table_row_index = position_first_row + i
@@ -2081,20 +2361,19 @@ class tibble(pl.DataFrame):
         return last_table_row_index 
 
     def __to_latex_breaklines__(self, table_str):
-        """
-        Given a LaTeX table string containing a tabular environment,
-        replace internal newline characters within table cells (i.e. those
-        that occur within the cell content, not the row terminators) by 
-        LaTeX line breaks and wrap the cell text with \makecell{...}.
+        # Given a LaTeX table string containing a tabular environment,
+        # replace internal newline characters within table cells (i.e. those
+        # that occur within the cell content, not the row terminators) by 
+        # LaTeX line breaks and wrap the cell text with \makecell{...}.
 
-        Table rules such as \\toprule, \midrule, and \\bottomrule are left untouched.
+        # Table rules such as \\toprule, \midrule, and \\bottomrule are left untouched.
 
-        Parameters:
-            table_str (str): A string containing a LaTeX table.
+        # Parameters:
+        #     table_str (str): A string containing a LaTeX table.
 
-        Returns:
-            str: The modified LaTeX table string.
-        """
+        # Returns:
+        #     str: The modified LaTeX table string.
+
         def process_tabular(match):
             # match.group(1): The \begin{tabular}{...} line
             # match.group(2): The content inside the tabular environment
@@ -2159,9 +2438,32 @@ class tibble(pl.DataFrame):
     # Exporting table 
     # ---------------
     def to_excel(self, *args, **kws):
+        """
+        Save table to excel.
+
+        Details
+        -------
+        See polars `write_excel()` for details.
+        
+        Returns
+        -------
+        None
+        """
+
         self.to_polars().write_excel(*args, **kws)
 
     def to_csv(self, *args, **kws):
+        """
+        Save table to csv.
+
+        Details
+        -------
+        See polars `write_csv()` for details.
+        
+        Returns
+        -------
+        None
+        """
         self.to_polars().write_csv(*args, **kws)
 
 class TibbleGroupBy(pl.dataframe.group_by.GroupBy):
@@ -2197,6 +2499,10 @@ def from_polars(df):
     df : DataFrame
         pl.DataFrame to convert to a tibble
 
+    Returns
+    -------
+    tibble
+
     Examples
     --------
     >>> tp.from_polars(df)
@@ -2206,9 +2512,6 @@ def from_polars(df):
     df = tibble(df)
     return df
 
-# def from_pandas(df):
-#     return from_polars(pl.from_pandas(df))
-
 def from_pandas(df):
     """
     Convert from pandas DataFrame to tibble
@@ -2217,6 +2520,10 @@ def from_pandas(df):
     ----------
     df : DataFrame
         pd.DataFrame to convert to a tibble
+
+    Returns
+    -------
+    tibble
 
     Examples
     --------

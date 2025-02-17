@@ -407,7 +407,8 @@ def scale(x):
     x : Expr
         Column to operate on
 
-    Returns:
+    Returns
+    -------
     array-like
         The standardized version of the input data.
     """
