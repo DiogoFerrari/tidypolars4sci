@@ -1,0 +1,25 @@
+
+
+/* ================== adjust images ================== */
+.two-column {
+  display: flex;
+  align-items: flex-start;
+}
+
+.two-column .text {
+  flex: 1;
+  padding-right: 20px;
+}
+
+.two-column .image {
+  flex: 1;
+  margin-left: -20px; /* Adjust value to reduce left padding */
+}
+
+
+/* ================== Basic color scheme (primary) ================== */
+:root  > * {
+  --md-primary-fg-color:        #006666;
+  --md-primary-fg-color--light: #66e0ff;
+  --md-primary-fg-color--dark:  #003d4d;
+}

@@ -1,0 +1,97 @@
+
+/* ================== Change BACKGROUND COLOR for function signatures ================== */
+.md-typeset .highlight {
+  background-color: ##C5C5C5; /* Dark background color */
+  padding: 5px;
+  border-radius: 6px;
+  font-weight: bold;
+  overflow-x: auto;
+  font-family: 'Fira Code', monospace; /* Optional: set code font */
+}
+
+/* Customize syntax highlighting colors */
+.md-typeset .highlight .k, /* Keywords */
+.md-typeset .highlight .n, /* Names (functions, variables) */
+.md-typeset .highlight .o { /* Operators */
+    color: #006666; /* Green for keywords, names, and operators */
+}
+
+.md-typeset .highlight .kt { 
+  color: #2196F3; /* Blue for types */
+}
+
+.md-typeset .highlight .p {
+  color: #FF5722; /* Orange for parameters */
+}
+
+/* Optional: Add a subtle shadow to the code block */
+.md-typeset .highlight {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 1);
+}
+
+
+
+/* ================== Customize TABLE header styles ================== */
+.md-typeset table thead th {
+  background-color: #F9F9F9; /* Green header background */
+  color: #000000;            /* White header text */
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 10px;
+  border-bottom: 2px solid #1B5E20;
+}
+
+/* Optional: Customize table body styles */
+.md-typeset table tbody td {
+  padding: 0px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Add hover effect for table rows */
+.md-typeset table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Style for tables from NumPy docstrings */
+.md-typeset .docutils field-list {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+/* Optional: Add border and spacing to tables */
+.md-typeset table {
+  border-collapse: collapse;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+
+/* ================== Customize TOC/SECTIONS header styles ================== */
+/* Style for top-level and important subsections (Usage, Data Manipulation, Statistics, Reporting) */
+.md-nav__list > .md-nav__item > .md-nav__link,
+.md-nav__list .md-nav__item .md-nav__list .md-nav__item > .md-nav__link {
+  font-size: .8rem;    /* Large font */
+  color: #2a9d8f;       /* Main section color */
+  font-weight: bold;
+  /* padding-top: 1px; */
+  /* padding-bottom: 1px; */
+  /* text-transform: uppercase; /\* Optional uppercase *\/ */
+}
+
+/* Style for regular subsections (e.g., Installation, Basic Usage) */
+.md-nav__list .md-nav__item .md-nav__list .md-nav__item .md-nav__list .md-nav__link {
+  font-size: .7rem;    /* Medium font for regular subsections */
+  color: #264653;       /* Subsection color */
+  font-weight: normal;
+}
+
+/* Style for third-level subsections (e.g., Mutate, Frequency Tables) */
+.md-nav__list .md-nav__item .md-nav__list .md-nav__item .md-nav__list .md-nav__item .md-nav__link {
+  font-size: .7rem;      /* Smaller font for sub-subsections */
+  color: #555;          /* Subtle color */
+  font-weight: normal;
+}
+
