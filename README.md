@@ -1,4 +1,4 @@
-![](https://github.com/DiogoFerrari/tidypolars4sci/blob/master/docs/tidypolars4sci.png?raw=True)
+![](docs/_css/tidypolars4sci.png)
 
 # TidyPolars $^{4sci}$
 
