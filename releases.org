@@ -1,0 +1,2 @@
+
+Check the [[https://github.com/DiogoFerrari/tidypolars4sci/blob/master/CHANGELOG.md][GitHub page]] for information about releases.
