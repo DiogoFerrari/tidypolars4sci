@@ -4,6 +4,7 @@ site_name: TidyPolars(4sci) - User guide
 site_url: http://www.diogoferrari.com/tidypolars4sci
 repo_url: http://github.com/DiogoFerrari/tidypolars4sci
 repo_name: tidypolars4sci
+use_directory_urls: true
 
 
 nav:

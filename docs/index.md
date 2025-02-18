@@ -2,7 +2,10 @@
 
   <div class="image">
     <!-- <img src="https://github.com/DiogoFerrari/tidypolars4sci/blob/master/docs/tidypolars4sci.png?raw=True" alt="Description" style="max-width: 500px; margin-left: 10px"> -->
-    <img src="./tidypolars4sci.png" alt="Description" style="max-width: 1000px; margin-left: 0px">
+    <!-- <img src="./tidypolars4sci.png" alt="Description" style="max-width: 1000px; margin-left: 0px"> -->
+	<!-- NOTE: style="max-width: 100%; height: auto;"  makes the image auto-shrink for smartphones-->
+    <img src="./tidypolars4sci.png" alt="Description" style="max-width: 100%; height: auto;">
+
   </div>
   
   
@@ -17,10 +20,17 @@
   <a href="https://pypi.org/project/tidypolars4sci/">
     <img src="https://img.shields.io/pypi/v/tidypolars4sci.svg" alt="PyPI Latest Release"/>
   </a>
+  
+  
+  <a href="https://app.netlify.com/sites/diogoferrari/deploys">
+    <img src="https://api.netlify.com/api/v1/badges/92e92c9d-e001-43c4-b925-daae5b320996/deploy-status"/>
+  </a>
+  
   <!-- <a href="https://doi.org/10.5281/zenodo.7697217"> -->
   <!--   <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7697217.svg" alt="DOI Latest Release"/> -->
   <!-- </a> -->
 </div>
+
 
  <!-- dprint-ignore-start -->
 !!! info "Note" 
