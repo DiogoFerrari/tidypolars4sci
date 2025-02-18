@@ -78,8 +78,8 @@
 <!-- Another useful feature of **tidypolars$^{4sci}$** is its extensive functionality aimed at facilitating data analysis and reporting for scientific research and academic publications. This includes the creation of LaTeX tables, which enhances the presentation of results. -->
 
 ## Performance
-Due to the additional functionalities provided, **tidypolars$^{4sci}$** may operate slightly slower than using Polars directly. Check the section [Performance](performance/performance.md).
 
+Due to the additional functionalities provided, in some use cases **tidypolars$^{4sci}$** may operate slightly slower than if using Polars directly. Check the section [Performance](performance/performance.md) for details.
 
 ## Similar projects
 

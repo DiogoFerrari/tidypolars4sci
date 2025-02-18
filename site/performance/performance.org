@@ -1,4 +1,169 @@
 
+** Peambule :noexport:
+
+#+BEGIN_SRC python :exports none :results none :tangle performance.py :cache yes :noweb no :session *Python-Org*
+import tidypolars4sci as tp
+from tidypolars4sci.data import mtcars
+import matplotlib.pyplot as plt
+import seaborn as sns
+import polars as pl
+import pandas as pd
+import numpy as np
+import time
+
+pl.Config(
+    tbl_formatting='UTF8_BORDERS_ONLY',
+    tbl_cell_numeric_alignment='RIGHT',
+    set_tbl_column_data_type_inline=False,
+    set_tbl_hide_dtype_separator=True,
+    set_tbl_rows=6,
+    set_tbl_width_chars=250,
+    thousands_separator=',',
+    decimal_separator='.',
+    float_precision=2,
+    fmt_str_lengths=5,
+    set_tbl_cols=12,
+    set_trim_decimal_zeros=True,
+)
+
+
+def plot_compare(pan, pol, tid):
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=[10, 6], tight_layout=True)
+    #
+    ax[0][0].scatter (range(len(pol)), pan/pol, color='gray', alpha=.2)
+    ax[0][0].hlines (y=(pan/pol).mean(), xmin=0, xmax=len(pol), color='black', linewidth=3)
+    ax[0][0].text (y=(pan/pol).mean(), x=0, s=f"Average: {(pan/pol).mean():.2}", color='black', size=12, va='bottom', weight='bold')
+    ax[0][0].set_ylabel('Ratio time elapsed:\nPandas/Polars')
+    ax[0][0].set_xlabel('Iteration')
+    
+    ax[0][1].scatter (range(len(pol)), tid/pol, color='gray', alpha=.2)
+    ax[0][1].hlines (y=(tid/pol).mean(), xmin=0, xmax=len(pol), color='black' ,linewidth=3)
+    ax[0][1].text (y=(tid/pol).mean(), x=0, s=f"Average: {(tid/pol).mean():.2}", color='black', size=12, va='bottom', weight='bold')
+    ax[0][1].set_ylabel('Ratio time elapsed:\nTidyPolars$^{4sci}$/Polars')
+    ax[0][1].set_xlabel('Iteration')
+    
+    sns.histplot(pan/pol, kde=True, ax=ax[1][0], edgecolor='white', color='black')
+    ax[1][0].set_xlabel('Time ratio (in seconds)\nPandas/Polars')
+    sns.histplot(tid/pol, kde=True, ax=ax[1][1], edgecolor='white', color='gray')
+    ax[1][1].set_xlabel('Time ratio (in seconds)\nTidyPolars$^{4sci}$/Polars')
+    
+    for i in range(2):
+        ax[0][i].hlines(y=1, xmin=0, xmax=len(pol), color='red', linestyle='--')
+        ax[0][i].set_ylim(np.min([(pan/pol).min(), (tid/pol).min()]),
+                          np.max([(pan/pol).max(), (tid/pol).max()]))
+        ax[1][i].set_xlim(np.min([(pan/pol).min(), (tid/pol).min()]),
+                          np.max([(pan/pol).max(), (tid/pol).max()]))
+    return ax
+
+def pivot_wide_with_pandas(df):
+    start_time = time.time()
+    col = 'name'
+
+    tab=(df
+         .filter(['name', "am"])
+         .pivot_table(index=None, values=col, columns="am",
+                      aggfunc=lambda col: "; ".join(sorted(col))
+                      )
+         )
+
+    elapsed = time.time() - start_time
+    return {'tab':tab, 'elapsed':elapsed}
+
+def pivot_wide_with_polars(df):
+    start_time = time.time()
+    col = 'name'
+
+    tab = (df
+           .select([col, "am"])
+           .with_columns(idx=0)
+           .pivot(index='idx', on="am", values=col,
+                  aggregate_function=pl.element().sort().str.concat("; ")
+                  )
+           )
+
+    elapsed = time.time() - start_time
+    return {'tab':tab, 'elapsed':elapsed}
+
+def pivot_wide_with_tidypolars4sci(df):
+    start_time = time.time()
+    col = 'name'
+    tab = (df
+           .select(col, 'am')
+           .pivot_wider(values_from=col, names_from='am',
+                        values_fn=pl.element().sort().str.concat("; "))
+           )
+    elapsed = time.time() - start_time
+    return {'tab':tab, 'elapsed':elapsed}
+
+#+END_SRC
+
+** Filter
+
+#+BEGIN_SRC python :exports both :results output code :tangle performance.py :cache yes :noweb no :session *Python-Org*
+import tidypolars4sci as tp
+import pandas as pd
+import polars as pl
+import numpy as np
+import time
+
+num_rows = 20_000_000
+df_tp = tp.tibble({'a':np.random.choice(['apple','banana','carrot',
+                                    'date','eggplant'], num_rows), 
+                 'b':np.random.rand(num_rows),
+                 'c':np.random.rand(num_rows),
+                 'd':np.random.rand(num_rows)})
+df_pandas = df_tp.to_pandas()
+df_polars = df_tp.to_polars()
+
+
+processing_time = {'pandas': [],
+                   'polars': [],
+                   'tidypolars4sci': [],
+                   }
+
+# pandas 
+# ------
+start_time = time.time()
+for _ in range(10):
+    df_pandas.query("a=='apple' | a=='banana'")
+    processing_time['pandas'] += [time.time() - start_time]
+
+# polars 
+# ------
+start_time = time.time()
+for _ in range(10):
+    df_polars.filter((pl.col('a')=='apple') | (pl.col('a')=='banana'))
+    processing_time['polars'] += [time.time() - start_time]
+
+# tidypolars4si
+# -------------
+start_time = time.time()
+for _ in range(10):
+    df_tp.filter((tp.col('a')=='apple') | (tp.col('a')=='banana'))
+    processing_time['tidypolars4sci'] += [time.time() - start_time]
+
+
+# summary
+summary=tp.tibble(processing_time)
+summary.descriptive_statistics().arrange('Mean').print()
+
+
+
+#+END_SRC
+
+#+RESULTS[106a22026600ab9f810001dd6fc263d3a2efb2b5]:
+#+begin_src python
+shape: (3, 10)
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│ Variable           N   Missing (%)   Mean   Std.Dev.    Min    25%    50%     75%     Max │
+│ str              i64           f64    f64        f64    f64    f64    f64     f64     f64 │
+╞═══════════════════════════════════════════════════════════════════════════════════════════╡
+│ tidypolars4sci    10          0.00   1.06       0.59   0.20   0.57   1.15    1.54    1.93 │
+│ polars            10          0.00   1.07       0.59   0.19   0.57   1.16    1.55    1.94 │
+│ pandas            10          0.00   7.25       3.84   1.40   4.09   7.97   10.49   12.76 │
+└───────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
 ** Pivot wide
 
 Let us use the data set ~mtcars~ to create a table in wide format using ~pivot_wide~. Here are the variables
@@ -94,9 +259,9 @@ shape: (3, 6)
 │ Mpdule           Mean (sec)   SD (sec)   Min (sec)   Max (sec)   How much slower than polars? │
 │ str                     f64        f64         f64         f64   str                          │
 ╞═══════════════════════════════════════════════════════════════════════════════════════════════╡
-│ Polars              0.00043    0.00011     0.00026     0.00109   1.0x (baseline)              │
-│ TidyPolars4sci      0.00081    0.00026     0.00048     0.00313   1.9x                         │
-│ Pandas              0.00232    0.00068     0.00148     0.00533   5.3x                         │
+│ Polars              0.00031    0.00005     0.00025     0.00092   1.0x (baseline)              │
+│ TidyPolars4sci      0.00076    0.00007     0.00065     0.00184   2.4x                         │
+│ Pandas              0.00261    0.00018     0.00250     0.00492   8.3x                         │
 └───────────────────────────────────────────────────────────────────────────────────────────────┘
 #+end_src
 
