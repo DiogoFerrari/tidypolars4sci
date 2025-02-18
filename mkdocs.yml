@@ -1,11 +1,10 @@
 
 # Project information
 site_name: TidyPolars(4sci) - User guide
-site_url: http://www.diogoferrari.com/tidypolars4sci
-repo_url: http://github.com/DiogoFerrari/tidypolars4sci
+site_url: https://www.diogoferrari.com/tidypolars4sci
+repo_url: https://github.com/DiogoFerrari/tidypolars4sci
 repo_name: tidypolars4sci
 use_directory_urls: true
-
 
 nav:
   - User Guide:
@@ -25,11 +24,6 @@ nav:
     - Pivot wide: case-studies/pivot-wide.md
   - API Reference: api.md
   - Releases: releases.md
-
-
-
-
-
 
 theme:
   name: material
