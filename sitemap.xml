@@ -1,55 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/api/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/api/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/comparing/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/comparing/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/releases/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/releases/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/case-studies/pivot-wide/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/case-studies/pivot-wide/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/performance/performance/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/performance/performance/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/usage/installation/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/usage/installation/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/usage/usage/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/usage/usage/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/usage/data-manipulation/mutate/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/usage/data-manipulation/mutate/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/usage/reporting/to-latex/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/usage/reporting/to-latex/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/usage/statistics/desc/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/usage/statistics/desc/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/usage/statistics/freq/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/usage/statistics/freq/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
     <url>
-         <loc>http://www.diogoferrari.com/tidypolars4sci/usage/statistics/tab/</loc>
+         <loc>https://www.diogoferrari.com/tidypolars4sci/usage/statistics/tab/</loc>
          <lastmod>2025-02-18</lastmod>
     </url>
 </urlset>
