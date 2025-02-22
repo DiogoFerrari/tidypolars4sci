@@ -19,7 +19,11 @@ nav:
       - Cross Tables: usage/statistics/tab.md
     - Reporting:
       - To LaTeX: usage/reporting/to-latex.md
-  - Performance: performance/performance.md
+  - Performance:
+    - performance/overview.md
+    - performance/filter.md
+    - performance/pivot-wide.md
+    - performance/summarise.md
   - Case Studies:
     - Pivot wide: case-studies/pivot-wide.md
   - API Reference: api.md

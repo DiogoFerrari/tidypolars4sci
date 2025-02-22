@@ -109,7 +109,3 @@ shape: (5, 3)
 │ Leia Organa       49.00        2,401.00 │
 └─────────────────────────────────────────┘
 ```
-
-## Comparing sintax
-
-\\include(./mutate-compare.md)

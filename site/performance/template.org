@@ -1,0 +1,92 @@
+
+# replace METHOD with the method being evaluated
+
+* METHOD
+** Code
+
+
+#+BEGIN_SRC python :exports code :results none :tangle src-METHOD.py :cache yes :noweb no :session *Python-Org*
+from docs.src.config import *
+from docs.src.performance import *
+# 
+import tidypolars4sci as tp
+import time
+
+#+END_SRC
+
+Preparing the data and collecting processing time:
+
+#+BEGIN_SRC python :exports code :results none :tangle src-METHOD.py :cache yes :noweb no :session *Python-Org*
+
+df_tp = df
+df_pd = df.to_pandas()
+df_pl = df.to_polars()
+
+    
+def on_pandas(df):
+    pass
+    
+def on_polars(df):
+    pass
+
+def on_tidypolars4sci(df):
+    pass
+
+    
+n = df.nrow    # sample size
+m = 1_000      # repetitions
+    
+# collect processing time
+processing_time = {'pandas': [],
+                   'polars': [],
+                   'tidypolars4sci': [],
+                   }
+# 
+for i in range(m):
+    # pandas
+    start_time = time.time()
+    on_pandas(df_pd)
+    processing_time['pandas'] += [time.time() - start_time]
+    
+    # polars
+    start_time = time.time()
+    on_polars(df_pl)
+    processing_time['polars'] += [time.time() - start_time]
+    
+    start_time = time.time()
+    on_tidypolars4sci(mtcars)
+    processing_time['tidypolars4sci'] += [time.time() - start_time]
+
+#+END_SRC
+
+
+** Results
+
+#+BEGIN_SRC python :exports results :results output code :tangle src-METHOD.py :cache yes :noweb no :session *Python-Org*
+
+compare(processing_time).print(digits=5)
+                           
+#+END_SRC
+
+
+
+Here is the summary of the performance:
+
+#+BEGIN_SRC python :exports results :file "./tables-and-figures/METHOD.png" :results output raw :cache yes :noweb no :session *Python-Org* :tangle src-METHOD.py
+
+compare_plot(processing_time, n=n, rep=m)
+# # Save figures
+fns = ["./tables-and-figures/" + f'METHOD.png']
+[plt.savefig(fn) for fn in fns]
+
+
+print("[[./tables-and-figures/METHOD.png]]\n"
+      # "#+begin_src org \n"# # # 
+      # "#+ATTR_ORG: :width 200/250/300/400/500/600\n"
+      # "#+ATTR_LATEX: :width 1\\textwidth :placement [ht!]\n"
+      # "#+CAPTION: Comparing performance for pivot_wide()\n"
+      # "#+Name: fig-METHOD\n"
+      # "#+end_src\n"# # # 
+      )
+
+#+END_SRC

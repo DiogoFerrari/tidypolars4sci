@@ -23,8 +23,7 @@ Note: Due to the additional functionalities provided, **tidypolars4sci** may ope
 
 ## Documentation
 
-`<under construction>`
-
+Available [here](https://diogoferrari.com/tidypolars4sci/).
 
 ## Installation
 

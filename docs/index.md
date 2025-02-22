@@ -4,7 +4,7 @@
     <!-- <img src="https://github.com/DiogoFerrari/tidypolars4sci/blob/master/docs/tidypolars4sci.png?raw=True" alt="Description" style="max-width: 500px; margin-left: 10px"> -->
     <!-- <img src="./tidypolars4sci.png" alt="Description" style="max-width: 1000px; margin-left: 0px"> -->
 	<!-- NOTE: style="max-width: 100%; height: auto;"  makes the image auto-shrink for smartphones-->
-    <img src="./tidypolars4sci.png" alt="Description" style="max-width: 100%; height: auto;">
+    <img src="./_css/tidypolars4sci.png" alt="Description" style="max-width: 100%; height: auto;">
 
   </div>
   
@@ -22,9 +22,9 @@
   </a>
   
   
-  <a href="https://app.netlify.com/sites/diogoferrari/deploys">
-    <img src="https://api.netlify.com/api/v1/badges/92e92c9d-e001-43c4-b925-daae5b320996/deploy-status"/>
-  </a>
+  <!-- <a href="https://app.netlify.com/sites/diogoferrari/deploys"> -->
+  <!--   <img src="https://api.netlify.com/api/v1/badges/92e92c9d-e001-43c4-b925-daae5b320996/deploy-status"/> -->
+  <!-- </a> -->
   
   <!-- <a href="https://doi.org/10.5281/zenodo.7697217"> -->
   <!--   <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7697217.svg" alt="DOI Latest Release"/> -->
@@ -62,12 +62,11 @@
 
 ## Key features
 
-- **Fast**: Uses [Polars](https://github.com/pola-rs/polars) as backend for data manipulation. So it inherits many advantages of Polars: fast, parallel, GPU support, etc.
+- **Fast**: Uses [Polars](https://docs.pola.rs/) as backend for data manipulation. So it inherits many advantages of Polars: fast, parallel, GPU support, etc.
 - **Tidy**: Keeps the data in tidy (rectangular table) format (no multi-indexes)
 - **Sintax**: While Polars is fast, the sintax is not the most intuitive. The package provides frontend methods that matches R's [Tidyverse](https://www.tidyverse.org/) functions, making it easier for users familiar with that ecosystem to transition to this library.
-- **Extended functinalities**: Polars is extended to provide many functionalities to facilitate data manipulation and and analysis.
-- **Research**: The package is design to facilitate academic research data analysis and reporting, making it easy to produce tables whose format are common in academic research. Output formats include LaTex, excel, and text-processing formats.
-
+- **Extended functinalities**: Polars is extended to facilitate data manipulation and analysis for academic research.
+- **Research**: The package is designed to facilitate academic research, data analysis, and reporting of the results. It provides functions to quickly produce tables using minimal code, and whose output matches the format commonly used in academic publications. Those output formats include LaTeX, Excel, CSV, and others.
 
 <!-- ## Details -->
 
@@ -77,10 +76,10 @@
 
 <!-- Another useful feature of **tidypolars$^{4sci}$** is its extensive functionality aimed at facilitating data analysis and reporting for scientific research and academic publications. This includes the creation of LaTeX tables, which enhances the presentation of results. -->
 
-## Performance
+<!-- ## Performance -->
 
-Due to the additional functionalities provided, in some use cases **tidypolars$^{4sci}$** may operate slightly slower than if using Polars directly. Check the section [Performance](performance/performance.md) for details.
+Note: Due to the additional functionalities provided by the module, in some use cases **tidypolars$^{4sci}$** may operate slightly slower than if using Polars directly. Check the section [Performance](performance/overview.md) for details.
 
-## Similar projects
+<!-- ## Similar projects -->
 
-- [tidypolars](https://pypi.org/project/tidypolars/): tidypolars was the starting point of tidypolars4sci
+<!-- - [tidypolars](https://pypi.org/project/tidypolars/): tidypolars was the starting point of tidypolars4sci -->

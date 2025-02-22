@@ -1,23 +1,17 @@
 
-** Peambule :noexport:
 
-#+BEGIN_SRC python :exports none :results none :tangle 02-mutate.py :cache yes :noweb no :session *Python-Org*
-import polars as pl
-pl.Config(
-     tbl_formatting='UTF8_BORDERS_ONLY',
-     tbl_cell_numeric_alignment='RIGHT',
-     set_tbl_column_data_type_inline=False,
-     set_tbl_hide_dtype_separator=True,
-     set_tbl_rows=6,
-     set_tbl_width_chars=250,
-     thousands_separator=',',
-     decimal_separator='.',
-     float_precision=2,
-     fmt_str_lengths=5,
-     set_tbl_cols=12,
-     set_trim_decimal_zeros=True,
-)
+** Prambule :noexport:
+
+#+NAME: config
+#+BEGIN_SRC python :exports none :results value code :tangle freq.py :cache yes :hlines yes :colnames yes :noweb no :session *Python-Org*
+from docs.src.config import *
+#+END_SRC
+
+#+RESULTS[8cb60bfc99e0432a8a567331c28c8c967d76e431]: config
+#+begin_src python
 #+end_src
+
+
 
 
 ** Basic examples
@@ -151,5 +145,4 @@ shape: (5, 3)
 └─────────────────────────────────────────┘
 #+end_src
 
-#+RESULTS:
 
