@@ -1,0 +1,88 @@
+
+
+* Filter
+** Code
+Preparing the data sets and setting the data size and the number of repetitions:
+
+#+BEGIN_SRC python :exports code :results none :tangle src-filter.py :cache yes :noweb no :session *Python-Org*
+from docs.src.config import *
+from docs.src.performance import *
+import time
+
+m = 100              # repetitions
+num_rows = 2_000_000 # number of rows
+
+df_tp = tp.tibble({'a':np.random.choice(['apple','banana','carrot',
+                                    'date','eggplant'], num_rows), 
+                 'b':np.random.rand(num_rows),
+                 'c':np.random.rand(num_rows),
+                 'd':np.random.rand(num_rows)})
+df_pandas = df_tp.to_pandas().copy()
+df_polars = df_tp.to_polars()
+#+END_SRC
+
+
+#+BEGIN_SRC python :exports code :results none :tangle src-filter.py :cache yes :noweb no :session *Python-Org*
+# collect processing time
+processing_time = {'pandas': [],
+                   'polars': [],
+                   'tidypolars4sci': [],
+                   }
+
+# ------
+for _ in range(m):
+    # pandas 
+    start_time = time.time()
+    df_pandas.query("a=='apple' | a=='banana'")
+    processing_time['pandas'] += [time.time() - start_time]
+    
+    # polars 
+    start_time = time.time()
+    df_polars.filter((pl.col('a')=='apple') | (pl.col('a')=='banana'))
+    processing_time['polars'] += [time.time() - start_time]
+
+    # tidypolars4si
+    start_time = time.time()
+    df_tp.filter((tp.col('a')=='apple') | (tp.col('a')=='banana'))
+    processing_time['tidypolars4sci'] += [time.time() - start_time]
+
+#+END_SRC
+
+** Results
+
+#+BEGIN_SRC python :exports results :results output code :tangle src-filter.py :cache yes :noweb no :session *Python-Org*
+# summary
+compare(processing_time).print()
+#+END_SRC
+
+#+RESULTS[23005897a276a509d3c10c34f53d464af95d0d2c]:
+#+begin_src python
+shape: (3, 6)
+┌───────────────────────────────────────────────────────────────────────────┐
+│ Module           Mean     SD    Min    Max   How much slower than polars? │
+│ str               f64    f64    f64    f64   str                          │
+╞═══════════════════════════════════════════════════════════════════════════╡
+│ polars           0.01   0.00   0.01   0.01   1.0x (baseline)              │
+│ tidypolars4sci   0.01   0.00   0.01   0.02   0.9x                         │
+│ pandas           0.09   0.00   0.09   0.12   7.4x                         │
+└───────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+
+#+BEGIN_SRC python :exports results :file "./tables-and-figures/filter.png" :results output raw :cache yes :noweb no :session *Python-Org* :tangle src-filter.py
+compare_plot(processing_time, n=num_rows, rep=m)
+fns = ["./tables-and-figures/" + f'filter.png']
+[plt.savefig(fn) for fn in fns]
+
+print(# "#+begin_src org \n"# # # 
+    # "#+ATTR_ORG: :width 200/250/300/400/500/600\n"
+    # "#+ATTR_LATEX: :width 1\textwidth :placement [ht!]\n"
+    # "#+CAPTION: Comparing performance for pivot_wide()\n"
+    # "#+Name: fig-pivot-wide\n"
+    "[[./tables-and-figures/filter.png]]\n"
+    # "#+end_src\n"# # # 
+)
+#+END_SRC
+
+#+RESULTS[c0fd071a1c4698d89970fcc243198030f4450d8f]:
+[[./tables-and-figures/filter.png]]

@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://www.diogoferrari.com/tidypolars4sci/case-studies/pivot-wide/">
+        <link rel="canonical" href="https://www.diogoferrari.com/tidypolars4sci/performance/pivot-wide/">
       
       
-        <link rel="prev" href="../../performance/summarise/">
+        <link rel="prev" href="../filter/">
       
       
-        <link rel="next" href="../../api/">
+        <link rel="next" href="../summarise/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#performance" class="md-skip">
+        <a href="#pivot-wide" class="md-skip">
           Skip to content
         </a>
       
@@ -232,11 +232,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../performance/overview/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
           
   
   Performance
@@ -250,13 +252,11 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../case-studies/pivot-wide/" class="md-tabs__link">
           
   
   Case Studies
@@ -728,25 +728,30 @@
       
   
   
+    
   
   
+  
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -758,7 +763,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Performance
@@ -772,7 +777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../performance/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -794,7 +799,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../performance/filter/" class="md-nav__link">
+      <a href="../filter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -813,103 +818,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../../performance/pivot-wide/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Pivot wide
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../performance/summarise/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Summarise
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    
-    
-    
-      
-        
-        
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
-            
-  
-  <span class="md-ellipsis">
-    Case Studies
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            Case Studies
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
     
   
   
@@ -918,6 +826,8 @@
       
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
+      
+        
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
@@ -949,6 +859,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -957,18 +869,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#performance" class="md-nav__link">
+  <a href="#code" class="md-nav__link">
     <span class="md-ellipsis">
-      Performance
+      Code
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#sintax-comparison" class="md-nav__link">
+  <a href="#results" class="md-nav__link">
     <span class="md-ellipsis">
-      Sintax comparison
+      Results
     </span>
   </a>
   
@@ -978,6 +890,98 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../summarise/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Summarise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Case Studies
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Case Studies
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/pivot-wide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pivot wide
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1051,15 +1055,18 @@
   
 
 
-  <h1>Pivot wide</h1>
-
-<h2 id="performance">Performance</h2>
+<h1 id="pivot-wide">Pivot wide</h1>
+<h2 id="code">Code</h2>
 <p>Let us use the data set <code>mtcars</code> to create a table in wide format using
-<code>pivot_wide</code>. Here are the variables</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span> <span class="nn">tidypolars4sci</span> <span class="k">as</span> <span class="nn">tp</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">tidypolars4sci.data</span> <span class="kn">import</span> <span class="n">mtcars</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">mtcars</span><span class="o">.</span><span class="n">glimpse</span><span class="p">()</span>
+<code>pivot_wide</code>. Here are the variables:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">docs.src.config</span> <span class="kn">import</span> <span class="o">*</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">docs.src.performance</span> <span class="kn">import</span> <span class="o">*</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># </span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kn">import</span> <span class="nn">tidypolars4sci</span> <span class="k">as</span> <span class="nn">tp</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kn">from</span> <span class="nn">tidypolars4sci.data</span> <span class="kn">import</span> <span class="n">mtcars</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="kn">import</span> <span class="nn">time</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">mtcars</span><span class="o">.</span><span class="n">glimpse</span><span class="p">()</span>
 </span></code></pre></div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Columns</span> <span class="n">matching</span> <span class="n">pattern</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a> <span class="n">Var</span> <span class="n">Type</span>     <span class="n">Uniq</span> <span class="n">Miss</span> <span class="p">(</span><span class="o">%</span><span class="p">)</span> <span class="n">Head</span>                                                       
@@ -1080,13 +1087,11 @@
 </span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="p">[</span><span class="n">Rows</span><span class="p">:</span> <span class="mi">32</span><span class="p">;</span> <span class="n">Columns</span> <span class="mi">12</span><span class="p">]</span>
 </span></code></pre></div>
 <p>A simple pivot wide operation:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">tidypolars4sci.data</span> <span class="kn">import</span> <span class="n">mtcars</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">tab</span> <span class="o">=</span> <span class="p">(</span><span class="n">mtcars</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>       <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;am&#39;</span><span class="p">)</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>       <span class="o">.</span><span class="n">pivot_wider</span><span class="p">(</span><span class="n">values_from</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">names_from</span><span class="o">=</span><span class="s1">&#39;am&#39;</span><span class="p">)</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>       <span class="p">)</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">tab</span> <span class="o">=</span> <span class="p">(</span><span class="n">mtcars</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>       <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;am&#39;</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>       <span class="o">.</span><span class="n">pivot_wider</span><span class="p">(</span><span class="n">values_from</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">names_from</span><span class="o">=</span><span class="s1">&#39;am&#39;</span><span class="p">)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>       <span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">print</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
 </span></code></pre></div>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">shape</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="err">┌─────────────────┐</span>
@@ -1096,52 +1101,74 @@
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="err">│</span> <span class="n">Mazda</span><span class="err">…</span>   <span class="n">Horne</span><span class="err">…</span> <span class="err">│</span>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="err">└─────────────────┘</span>
 </span></code></pre></div>
-<p>Table below shows summary after 1,000 repetitions comparing the same
-operation in Pandas, Polars, and tidypolars4sci:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">shape</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="err">┌───────────────────────────────────────────────────────────────────────────────────────────────┐</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="err">│</span> <span class="n">Mpdule</span>           <span class="n">Mean</span> <span class="p">(</span><span class="n">sec</span><span class="p">)</span>   <span class="n">SD</span> <span class="p">(</span><span class="n">sec</span><span class="p">)</span>   <span class="n">Min</span> <span class="p">(</span><span class="n">sec</span><span class="p">)</span>   <span class="n">Max</span> <span class="p">(</span><span class="n">sec</span><span class="p">)</span>   <span class="n">How</span> <span class="n">much</span> <span class="n">slower</span> <span class="n">than</span> <span class="n">polars</span><span class="err">?</span> <span class="err">│</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="err">│</span> <span class="nb">str</span>                     <span class="n">f64</span>        <span class="n">f64</span>         <span class="n">f64</span>         <span class="n">f64</span>   <span class="nb">str</span>                          <span class="err">│</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="err">╞═══════════════════════════════════════════════════════════════════════════════════════════════╡</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="err">│</span> <span class="n">Polars</span>              <span class="mf">0.00042</span>    <span class="mf">0.00010</span>     <span class="mf">0.00026</span>     <span class="mf">0.00099</span>   <span class="mf">1.0</span><span class="n">x</span> <span class="p">(</span><span class="n">baseline</span><span class="p">)</span>              <span class="err">│</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="err">│</span> <span class="n">TidyPolars4sci</span>      <span class="mf">0.00079</span>    <span class="mf">0.00022</span>     <span class="mf">0.00049</span>     <span class="mf">0.00199</span>   <span class="mf">1.9</span><span class="n">x</span>                         <span class="err">│</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="err">│</span> <span class="n">Pandas</span>              <span class="mf">0.00227</span>    <span class="mf">0.00065</span>     <span class="mf">0.00147</span>     <span class="mf">0.00544</span>   <span class="mf">5.4</span><span class="n">x</span>                         <span class="err">│</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="err">└───────────────────────────────────────────────────────────────────────────────────────────────┘</span>
+<p>Preparing the data and collecting processing time:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">df_tp</span> <span class="o">=</span> <span class="n">mtcars</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">df_pd</span> <span class="o">=</span> <span class="n">mtcars</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">df_pl</span> <span class="o">=</span> <span class="n">mtcars</span><span class="o">.</span><span class="n">to_polars</span><span class="p">()</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="k">def</span> <span class="nf">pivot_wide_with_pandas</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">tab</span><span class="o">=</span><span class="p">(</span><span class="n">df</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>         <span class="o">.</span><span class="n">filter</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s2">&quot;am&quot;</span><span class="p">])</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>         <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;am&quot;</span><span class="p">,</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>                      <span class="n">aggfunc</span><span class="o">=</span><span class="k">lambda</span> <span class="n">col</span><span class="p">:</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">col</span><span class="p">))</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>                      <span class="p">)</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>         <span class="p">)</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="k">def</span> <span class="nf">pivot_wide_with_polars</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="n">tab</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>           <span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;am&quot;</span><span class="p">])</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>           <span class="o">.</span><span class="n">with_columns</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>           <span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s1">&#39;idx&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>                  <span class="n">aggregate_function</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">element</span><span class="p">()</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="s2">&quot;; &quot;</span><span class="p">)</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>                  <span class="p">)</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>           <span class="p">)</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="k">def</span> <span class="nf">pivot_wide_with_tidypolars4sci</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>    <span class="n">tab</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>           <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s1">&#39;am&#39;</span><span class="p">)</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>           <span class="o">.</span><span class="n">pivot_wider</span><span class="p">(</span><span class="n">values_from</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">names_from</span><span class="o">=</span><span class="s1">&#39;am&#39;</span><span class="p">,</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a>                        <span class="n">values_fn</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">element</span><span class="p">()</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="s2">&quot;; &quot;</span><span class="p">))</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>           <span class="p">)</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="n">n</span> <span class="o">=</span> <span class="n">mtcars</span><span class="o">.</span><span class="n">nrow</span> <span class="c1"># sample size</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="n">m</span> <span class="o">=</span> <span class="mi">1_000</span>       <span class="c1"># repetitions</span>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a>
+</span><span id="__span-4-34"><a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="c1"># collect processing time</span>
+</span><span id="__span-4-35"><a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="n">processing_time</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pandas&#39;</span><span class="p">:</span> <span class="p">[],</span>
+</span><span id="__span-4-36"><a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a>                   <span class="s1">&#39;polars&#39;</span><span class="p">:</span> <span class="p">[],</span>
+</span><span id="__span-4-37"><a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a>                   <span class="s1">&#39;tidypolars4sci&#39;</span><span class="p">:</span> <span class="p">[],</span>
+</span><span id="__span-4-38"><a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a>                   <span class="p">}</span>
+</span><span id="__span-4-39"><a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="c1"># </span>
+</span><span id="__span-4-40"><a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+</span><span id="__span-4-41"><a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a>    <span class="c1"># pandas</span>
+</span><span id="__span-4-42"><a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a>    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="__span-4-43"><a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a>    <span class="n">pivot_wide_with_pandas</span><span class="p">(</span><span class="n">df_pd</span><span class="p">)</span>
+</span><span id="__span-4-44"><a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a>    <span class="n">processing_time</span><span class="p">[</span><span class="s1">&#39;pandas&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">]</span>
+</span><span id="__span-4-45"><a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a>
+</span><span id="__span-4-46"><a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a>    <span class="c1"># polars</span>
+</span><span id="__span-4-47"><a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a>    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="__span-4-48"><a id="__codelineno-4-48" name="__codelineno-4-48" href="#__codelineno-4-48"></a>    <span class="n">pivot_wide_with_polars</span><span class="p">(</span><span class="n">df_pl</span><span class="p">)</span>
+</span><span id="__span-4-49"><a id="__codelineno-4-49" name="__codelineno-4-49" href="#__codelineno-4-49"></a>    <span class="n">processing_time</span><span class="p">[</span><span class="s1">&#39;polars&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">]</span>
+</span><span id="__span-4-50"><a id="__codelineno-4-50" name="__codelineno-4-50" href="#__codelineno-4-50"></a>
+</span><span id="__span-4-51"><a id="__codelineno-4-51" name="__codelineno-4-51" href="#__codelineno-4-51"></a>    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="__span-4-52"><a id="__codelineno-4-52" name="__codelineno-4-52" href="#__codelineno-4-52"></a>    <span class="n">pivot_wide_with_tidypolars4sci</span><span class="p">(</span><span class="n">mtcars</span><span class="p">)</span>
+</span><span id="__span-4-53"><a id="__codelineno-4-53" name="__codelineno-4-53" href="#__codelineno-4-53"></a>    <span class="n">processing_time</span><span class="p">[</span><span class="s1">&#39;tidypolars4sci&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">]</span>
+</span></code></pre></div>
+<h2 id="results">Results</h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">shape</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="err">┌───────────────────────────────────────────────────────────────────────────────────────┐</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="err">│</span> <span class="n">Module</span>              <span class="n">Mean</span>        <span class="n">SD</span>       <span class="n">Min</span>       <span class="n">Max</span>   <span class="n">How</span> <span class="n">much</span> <span class="n">slower</span> <span class="n">than</span> <span class="n">polars</span><span class="err">?</span> <span class="err">│</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="err">│</span> <span class="nb">str</span>                  <span class="n">f64</span>       <span class="n">f64</span>       <span class="n">f64</span>       <span class="n">f64</span>   <span class="nb">str</span>                          <span class="err">│</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="err">╞═══════════════════════════════════════════════════════════════════════════════════════╡</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="err">│</span> <span class="n">polars</span>           <span class="mf">0.00041</span>   <span class="mf">0.00018</span>   <span class="mf">0.00019</span>   <span class="mf">0.00464</span>   <span class="mf">1.0</span><span class="n">x</span> <span class="p">(</span><span class="n">baseline</span><span class="p">)</span>              <span class="err">│</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="err">│</span> <span class="n">tidypolars4sci</span>   <span class="mf">0.00080</span>   <span class="mf">0.00028</span>   <span class="mf">0.00046</span>   <span class="mf">0.00521</span>   <span class="mf">1.9</span><span class="n">x</span>                         <span class="err">│</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="err">│</span> <span class="n">pandas</span>           <span class="mf">0.00192</span>   <span class="mf">0.00053</span>   <span class="mf">0.00143</span>   <span class="mf">0.00703</span>   <span class="mf">4.6</span><span class="n">x</span>                         <span class="err">│</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="err">└───────────────────────────────────────────────────────────────────────────────────────┘</span>
 </span></code></pre></div>
 <p>Here is the summary of the performance:</p>
-<p><img alt="" src="../tables-and-figures/fig-pivot-wide.png" /></p>
-<h2 id="sintax-comparison">Sintax comparison</h2>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">tidypolars4sci</label><label for="__tabbed_1_2">Pandas</label><label for="__tabbed_1_3">Polars</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">tab</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>       <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s1">&#39;am&#39;</span><span class="p">)</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>       <span class="o">.</span><span class="n">pivot_wider</span><span class="p">(</span><span class="n">values_from</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">names_from</span><span class="o">=</span><span class="s1">&#39;am&#39;</span><span class="p">,</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>                    <span class="n">values_fn</span><span class="o">=</span><span class="n">tp</span><span class="o">.</span><span class="n">element</span><span class="p">()</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="s2">&quot;; &quot;</span><span class="p">))</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>       <span class="p">)</span>
-</span></code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">tab</span><span class="o">=</span><span class="p">(</span><span class="n">df</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>     <span class="o">.</span><span class="n">filter</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s2">&quot;am&quot;</span><span class="p">])</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>     <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;am&quot;</span><span class="p">,</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>                  <span class="n">aggfunc</span><span class="o">=</span><span class="k">lambda</span> <span class="n">col</span><span class="p">:</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">col</span><span class="p">))</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>                  <span class="p">)</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>     <span class="p">)</span>
-</span></code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">tab</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>       <span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;am&quot;</span><span class="p">])</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>       <span class="o">.</span><span class="n">with_columns</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>       <span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s1">&#39;idx&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">col</span><span class="p">,</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>              <span class="n">aggregate_function</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">element</span><span class="p">()</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="s2">&quot;; &quot;</span><span class="p">)</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>              <span class="p">)</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>       <span class="p">)</span>
-</span></code></pre></div>
-</div>
-</div>
-</div>
+<p><img alt="" src="../tables-and-figures/pivot-wide.png" /></p>
 
 
 

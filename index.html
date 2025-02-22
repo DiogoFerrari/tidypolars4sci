@@ -233,16 +233,17 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="performance/performance/" class="md-tabs__link">
-        
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="performance/overview/" class="md-tabs__link">
+          
   
   Performance
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -787,9 +788,24 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="performance/performance/" class="md-nav__link">
+    
+    
+    
+      
+      
         
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
   
   <span class="md-ellipsis">
     Performance
@@ -797,7 +813,107 @@
   </span>
   
 
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Performance
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="performance/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="performance/filter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Filter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="performance/pivot-wide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pivot wide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="performance/summarise/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Summarise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -937,7 +1053,7 @@
     <!-- <img src="https://github.com/DiogoFerrari/tidypolars4sci/blob/master/docs/tidypolars4sci.png?raw=True" alt="Description" style="max-width: 500px; margin-left: 10px"> -->
     <!-- <img src="./tidypolars4sci.png" alt="Description" style="max-width: 1000px; margin-left: 0px"> -->
     <!-- NOTE: style="max-width: 100%; height: auto;"  makes the image auto-shrink for smartphones-->
-    <img src="./tidypolars4sci.png" alt="Description" style="max-width: 100%; height: auto;">
+    <img src="./_css/tidypolars4sci.png" alt="Description" style="max-width: 100%; height: auto;">
 
   </div>
 
@@ -992,11 +1108,11 @@
 <p><strong>tidypolars<script type="math/tex">^{4sci}</script></strong> provides functions that match as closely as possible to R&rsquo;s <a href="https://www.tidyverse.org/">Tidyverse</a> functions for manipulating data frames and conducting data analysis in Python using the blazingly fast <a href="https://github.com/pola-rs/polars">Polars</a> as backend.</p>
 <h2 id="key-features">Key features</h2>
 <ul>
-<li><strong>Fast</strong>: Uses <a href="https://github.com/pola-rs/polars">Polars</a> as backend for data manipulation. So it inherits many advantages of Polars: fast, parallel, GPU support, etc.</li>
+<li><strong>Fast</strong>: Uses <a href="https://docs.pola.rs/">Polars</a> as backend for data manipulation. So it inherits many advantages of Polars: fast, parallel, GPU support, etc.</li>
 <li><strong>Tidy</strong>: Keeps the data in tidy (rectangular table) format (no multi-indexes)</li>
 <li><strong>Sintax</strong>: While Polars is fast, the sintax is not the most intuitive. The package provides frontend methods that matches R&rsquo;s <a href="https://www.tidyverse.org/">Tidyverse</a> functions, making it easier for users familiar with that ecosystem to transition to this library.</li>
-<li><strong>Extended functinalities</strong>: Polars is extended to provide many functionalities to facilitate data manipulation and and analysis.</li>
-<li><strong>Research</strong>: The package is design to facilitate academic research data analysis and reporting, making it easy to produce tables whose format are common in academic research. Output formats include LaTex, excel, and text-processing formats.</li>
+<li><strong>Extended functinalities</strong>: Polars is extended to facilitate data manipulation and analysis for academic research.</li>
+<li><strong>Research</strong>: The package is designed to facilitate academic research, data analysis, and reporting of the results. It provides functions to quickly produce tables using minimal code, and whose output matches the format commonly used in academic publications. Those output formats include LaTeX, Excel, CSV, and others.</li>
 </ul>
 <!-- ## Details -->
 
@@ -1008,7 +1124,7 @@
 
 <!-- ## Performance -->
 
-<p>Note: Due to the additional functionalities provided by the module, in some use cases <strong>tidypolars<script type="math/tex">^{4sci}</script></strong> may operate slightly slower than if using Polars directly. Check the section <a href="performance/performance/">Performance</a> for details.</p>
+<p>Note: Due to the additional functionalities provided by the module, in some use cases <strong>tidypolars<script type="math/tex">^{4sci}</script></strong> may operate slightly slower than if using Polars directly. Check the section <a href="performance/overview/">Performance</a> for details.</p>
 <!-- ## Similar projects -->
 
 <!-- - [tidypolars](https://pypi.org/project/tidypolars/): tidypolars was the starting point of tidypolars4sci -->

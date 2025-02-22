@@ -8,22 +8,28 @@
       
       
       
+        <link rel="canonical" href="https://www.diogoferrari.com/tidypolars4sci/performance/filter/">
       
       
+        <link rel="prev" href="../overview/">
       
-      <link rel="icon" href="/tidypolars4sci/assets/images/favicon.png">
+      
+        <link rel="next" href="../pivot-wide/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
     
     
       
-        <title>TidyPolars(4sci) - User guide</title>
+        <title>Filter - TidyPolars(4sci) - User guide</title>
       
     
     
-      <link rel="stylesheet" href="/tidypolars4sci/assets/stylesheets/main.8608ea7d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
       
         
-        <link rel="stylesheet" href="/tidypolars4sci/assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -42,13 +48,13 @@
       
     
     
-      <link rel="stylesheet" href="/tidypolars4sci/assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="/tidypolars4sci/_css/extra.css">
+      <link rel="stylesheet" href="../../_css/extra.css">
     
-      <link rel="stylesheet" href="/tidypolars4sci/_css/stylesheets.css">
+      <link rel="stylesheet" href="../../_css/stylesheets.css">
     
-    <script>__md_scope=new URL("/tidypolars4sci/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +79,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#filter" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,9 +96,9 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/tidypolars4sci/." title="TidyPolars(4sci) - User guide" class="md-header__button md-logo" aria-label="TidyPolars(4sci) - User guide" data-md-component="logo">
+    <a href="../.." title="TidyPolars(4sci) - User guide" class="md-header__button md-logo" aria-label="TidyPolars(4sci) - User guide" data-md-component="logo">
       
-  <img src="/tidypolars4sci/_css/tidypolars4sci-logo2.png" alt="logo">
+  <img src="../../_css/tidypolars4sci-logo2.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -104,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Filter
             
           </span>
         </div>
@@ -207,7 +218,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/tidypolars4sci/." class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   User Guide
@@ -221,11 +232,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/tidypolars4sci/performance/overview/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
           
   
   Performance
@@ -243,7 +256,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/tidypolars4sci/case-studies/pivot-wide/" class="md-tabs__link">
+        <a href="../../case-studies/pivot-wide/" class="md-tabs__link">
           
   
   Case Studies
@@ -259,7 +272,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="/tidypolars4sci/api/" class="md-tabs__link">
+      <a href="../../api/" class="md-tabs__link">
         
   
     
@@ -276,7 +289,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="/tidypolars4sci/releases/" class="md-tabs__link">
+      <a href="../../releases/" class="md-tabs__link">
         
   
     
@@ -318,9 +331,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/tidypolars4sci/." title="TidyPolars(4sci) - User guide" class="md-nav__button md-logo" aria-label="TidyPolars(4sci) - User guide" data-md-component="logo">
+    <a href="../.." title="TidyPolars(4sci) - User guide" class="md-nav__button md-logo" aria-label="TidyPolars(4sci) - User guide" data-md-component="logo">
       
-  <img src="/tidypolars4sci/_css/tidypolars4sci-logo2.png" alt="logo">
+  <img src="../../_css/tidypolars4sci-logo2.png" alt="logo">
 
     </a>
     TidyPolars(4sci) - User guide
@@ -388,7 +401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -410,7 +423,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/usage/installation/" class="md-nav__link">
+      <a href="../../usage/installation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -432,7 +445,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/usage/usage/" class="md-nav__link">
+      <a href="../../usage/usage/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -495,7 +508,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/usage/data-manipulation/mutate/" class="md-nav__link">
+      <a href="../../usage/data-manipulation/mutate/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -566,7 +579,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/usage/statistics/desc/" class="md-nav__link">
+      <a href="../../usage/statistics/desc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -588,7 +601,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/usage/statistics/freq/" class="md-nav__link">
+      <a href="../../usage/statistics/freq/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -610,7 +623,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/usage/statistics/tab/" class="md-nav__link">
+      <a href="../../usage/statistics/tab/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -681,7 +694,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/usage/reporting/to-latex/" class="md-nav__link">
+      <a href="../../usage/reporting/to-latex/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -715,25 +728,30 @@
       
   
   
+    
   
   
+  
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -745,7 +763,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Performance
@@ -759,7 +777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/performance/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -778,10 +796,31 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/tidypolars4sci/performance/filter/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Filter
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -791,6 +830,44 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Results
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -803,7 +880,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/performance/pivot-wide/" class="md-nav__link">
+      <a href="../pivot-wide/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -825,7 +902,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/performance/summarise/" class="md-nav__link">
+      <a href="../summarise/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -895,7 +972,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/case-studies/pivot-wide/" class="md-nav__link">
+      <a href="../../case-studies/pivot-wide/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -924,7 +1001,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/api/" class="md-nav__link">
+      <a href="../../api/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -945,7 +1022,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tidypolars4sci/releases/" class="md-nav__link">
+      <a href="../../releases/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -971,8 +1048,84 @@
             <div class="md-content" data-md-component="content">
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+  
+  
+
+
+<h1 id="filter">Filter</h1>
+<h2 id="code">Code</h2>
+<p>Preparing the data sets and setting the data size and the number of
+repetitions:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">docs.src.config</span> <span class="kn">import</span> <span class="o">*</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">docs.src.performance</span> <span class="kn">import</span> <span class="o">*</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">import</span> <span class="nn">time</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">m</span> <span class="o">=</span> <span class="mi">100</span>              <span class="c1"># repetitions</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">num_rows</span> <span class="o">=</span> <span class="mi">2_000_000</span> <span class="c1"># number of rows</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">df_tp</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">tibble</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="s1">&#39;apple&#39;</span><span class="p">,</span><span class="s1">&#39;banana&#39;</span><span class="p">,</span><span class="s1">&#39;carrot&#39;</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                                    <span class="s1">&#39;date&#39;</span><span class="p">,</span><span class="s1">&#39;eggplant&#39;</span><span class="p">],</span> <span class="n">num_rows</span><span class="p">),</span> 
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                 <span class="s1">&#39;b&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_rows</span><span class="p">),</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                 <span class="s1">&#39;c&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_rows</span><span class="p">),</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>                 <span class="s1">&#39;d&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_rows</span><span class="p">)})</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">df_pandas</span> <span class="o">=</span> <span class="n">df_tp</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">df_polars</span> <span class="o">=</span> <span class="n">df_tp</span><span class="o">.</span><span class="n">to_polars</span><span class="p">()</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># collect processing time</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">processing_time</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pandas&#39;</span><span class="p">:</span> <span class="p">[],</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                   <span class="s1">&#39;polars&#39;</span><span class="p">:</span> <span class="p">[],</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>                   <span class="s1">&#39;tidypolars4sci&#39;</span><span class="p">:</span> <span class="p">[],</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>                   <span class="p">}</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># pandas </span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># ------</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">df_pandas</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;a==&#39;apple&#39; | a==&#39;banana&#39;&quot;</span><span class="p">)</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="n">processing_time</span><span class="p">[</span><span class="s1">&#39;pandas&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">]</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># polars </span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="c1"># ------</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="n">df_polars</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">==</span><span class="s1">&#39;apple&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">==</span><span class="s1">&#39;banana&#39;</span><span class="p">))</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="n">processing_time</span><span class="p">[</span><span class="s1">&#39;polars&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">]</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="c1"># tidypolars4si</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="c1"># -------------</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>    <span class="n">df_tp</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">tp</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">==</span><span class="s1">&#39;apple&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">==</span><span class="s1">&#39;banana&#39;</span><span class="p">))</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    <span class="n">processing_time</span><span class="p">[</span><span class="s1">&#39;tidypolars4sci&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">]</span>
+</span></code></pre></div>
+<h2 id="results">Results</h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">shape</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="err">┌───────────────────────────────────────────────────────────────────────────┐</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="err">│</span> <span class="n">Module</span>           <span class="n">Mean</span>     <span class="n">SD</span>    <span class="n">Min</span>    <span class="n">Max</span>   <span class="n">How</span> <span class="n">much</span> <span class="n">slower</span> <span class="n">than</span> <span class="n">polars</span><span class="err">?</span> <span class="err">│</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="err">│</span> <span class="nb">str</span>               <span class="n">f64</span>    <span class="n">f64</span>    <span class="n">f64</span>    <span class="n">f64</span>   <span class="nb">str</span>                          <span class="err">│</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="err">╞═══════════════════════════════════════════════════════════════════════════╡</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="err">│</span> <span class="n">polars</span>           <span class="mf">0.01</span>   <span class="mf">0.00</span>   <span class="mf">0.01</span>   <span class="mf">0.01</span>   <span class="mf">1.0</span><span class="n">x</span> <span class="p">(</span><span class="n">baseline</span><span class="p">)</span>              <span class="err">│</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="err">│</span> <span class="n">tidypolars4sci</span>   <span class="mf">0.01</span>   <span class="mf">0.00</span>   <span class="mf">0.01</span>   <span class="mf">0.02</span>   <span class="mf">0.9</span><span class="n">x</span>                         <span class="err">│</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="err">│</span> <span class="n">pandas</span>           <span class="mf">0.09</span>   <span class="mf">0.00</span>   <span class="mf">0.09</span>   <span class="mf">0.12</span>   <span class="mf">7.4</span><span class="n">x</span>                         <span class="err">│</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="err">└───────────────────────────────────────────────────────────────────────────┘</span>
+</span></code></pre></div>
+<p><img alt="" src="../tables-and-figures/filter.png" /></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1006,10 +1159,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "/tidypolars4sci/", "features": ["content.code.copy", "navigation.tabs", "navigation.tabs.sticky", "navigation.path", "toc.integrate", "navigation.sections"], "search": "/tidypolars4sci/assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.tabs", "navigation.tabs.sticky", "navigation.path", "toc.integrate", "navigation.sections"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="/tidypolars4sci/assets/javascripts/bundle.f1b6f286.min.js"></script>
+      <script src="../../assets/javascripts/bundle.f1b6f286.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
       
