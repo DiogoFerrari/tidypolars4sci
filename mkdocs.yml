@@ -26,6 +26,7 @@ nav:
     - performance/summarise.md
   - Case Studies:
     - Pivot wide: case-studies/pivot-wide.md
+    - Regression tables: case-studies/regression-table.md
   - API Reference: api.md
   - Releases: releases.md
 

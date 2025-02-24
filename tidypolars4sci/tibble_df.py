@@ -2323,7 +2323,7 @@ class tibble(pl.DataFrame):
         # insert groups heading rows
         for key, pos in sorted(groups_row_locations.items(),
                                key=lambda item: item[1], reverse=True):
-            group_title = f"\\addlinespace[0.3em]\n\\multicolumn{{{ncols}}}{{{group_title_align}}}{{ \\textbf{{{key}}} }}\\\\"
+            group_title = f"\\addlinespace[0.3em]\\multicolumn{{{ncols}}}{{{group_title_align}}}{{ \\textbf{{{key}}} }}\\\\"
             rows.insert(position_first_row + pos, group_title )
 
         return rows
