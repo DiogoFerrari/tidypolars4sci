@@ -1,5 +1,6 @@
 from pathlib import Path
 from ..io import read_data
+from ..tibble_df import tibble
 
 DATA_DIR = Path(__file__).parent
 
@@ -39,6 +40,6 @@ def __load_mtcars__():
     Henderson and Velleman (1981), Building multiple regression
     models interactively. *Biometrics*, **37**, 391–411.
     """
-    return mtcars
+    return tibble(mtcars)
 
 

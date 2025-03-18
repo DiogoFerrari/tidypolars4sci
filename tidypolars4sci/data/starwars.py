@@ -1,5 +1,6 @@
 from pathlib import Path
 from ..io import read_data
+from ..tibble_df import tibble
 
 DATA_DIR = Path(__file__).parent
 
@@ -44,6 +45,6 @@ def __load_starwars__():
     SWAPI, the Star Wars API, https://swapi.py4e.com/.
 
     """
-    return starwars
+    return tibble(starwars)
 
 # starwars = __load_starwars__()

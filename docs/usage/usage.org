@@ -2,12 +2,13 @@
 * Prambule :noexport:
 
 #+NAME: config
-#+BEGIN_SRC python :exports none :results value code :tangle freq.py :cache yes :hlines yes :colnames yes :noweb no :session *Python-Org*
+#+BEGIN_SRC python :exports none :results value code :tangle freq.py :cache yes :hlines yes :colnames yes :noweb no :session *Python*
 from docs.src.config import *
 #+END_SRC
 
-#+RESULTS[8cb60bfc99e0432a8a567331c28c8c967d76e431]: config
+#+RESULTS[d9202141f3b01493eca2db892e4944ee4e321f41]: config
 #+begin_src python
+None
 #+end_src
 
 
@@ -17,70 +18,106 @@ from docs.src.config import *
 :PROPERTIES:
 :CUSTOM_ID: basic-usage
 :END:
-tidypolars\(^{4sci} \) methods are designed to work like tidyverse functions:
+tidypolars\(^{4sci} \) methods are designed to work like tidyverse functions. This creates a dataframe:
 
-#+BEGIN_SRC python :exports both :results output code :tangle usage.py :cache yes :noweb no :session *Python-Org*
+#+BEGIN_SRC python :exports code :results none :tangle src-usage.py :cache yes :noweb no :session *Python* :linenums 1
 import tidypolars4sci as tp
 
-# create tibble data frame
-df = tp.tibble({"x" : range(4),
-                "y" : range(3, 7),
-                "z" : ['a', 'a', 'b', 'c']})
+df = tp.tibble({"x" : range(6),
+                "y" : range(6, 12),
+                "w" : range(6, 12),
+                "z" : ['a', 'a', 'b', 'c', 'd', 'e']}) # (1)!
+#+end_src
+
+1. Creates a tibble (the data frame of tidypolars\(^{4sci} \))
+
+
+Here is the dataframe created:
+
+# print df
+#+BEGIN_SRC python :exports results :results output code :tangle src-usage.py :cache yes :noweb no :session *Python*
+df.print()
+#+END_SRC
+
+#+RESULTS[c5974486ea9b8c12179942896a28703a7f555404]:
+#+begin_src python
+shape: (6, 4)
+┌───────────────────────┐
+│   x     y     w   z   │
+│ i64   i64   i64   str │
+╞═══════════════════════╡
+│   0     6     6   a   │
+│   1     7     7   a   │
+│   2     8     8   b   │
+│   3     9     9   c   │
+│   4    10    10   d   │
+│   5    11    11   e   │
+└───────────────────────┘
+#+end_src
+
+
+Data manipulation mirrors tidyverse function names:
+
+# manipulaiton
+#+BEGIN_SRC python :exports code :results none :tangle src-usage.py :cache yes :noweb no :session *Python*  :linenums 1
 df = (df
-      .select('x', 'y', 'z')
-      .filter(tp.col('x') < 4, tp.col('y') > 1)
-      .arrange(tp.desc('z'), 'x')
-      .mutate(double_x = tp.col('x') * 2,
-              x_plus_y = tp.col('x') + tp.col('y'),
-              z_num = tp.case_when(tp.col("z")=='a', 1,
-                                    tp.col("z")=='b', 2,
-                                    True, 0),
+      .select('x', 'y', 'z') # (1)!
+      .filter(tp.col('x') < 4, tp.col('y') >=7) # (2)!
+      .arrange(tp.desc('z'), 'x') # (3)!
+      .mutate(double_x = tp.col('x') * 2, # (4)!
+              x_plus_y = tp.col('x') + tp.col('y'), # (5)!
+              z_num = tp.case_when(tp.col("z")=='a', 1, 
+                                   tp.col("z")=='b', 2,
+                                   True, 0), # (6)!
               )
       
       )
-df.print()
-#+end_src
+#+END_SRC
 
-#+RESULTS[b9704d7c2b9677c1b2ab1540595a61fd2c471000]:
+1. Select columns ~x~, ~y~, and ~z~.
+2. Select (filter) rows with ~x < 4~ and ~y > 7~.
+3. Sort (arrange) the data by ~z~ (decreasing values) and then by ~x~ (increasing values).
+4. Create a variable ~double_x~.
+5. Create a variable ~x_plus_y~.
+6. Create a variable ~z_num~ that is ~1~ when ~z = 'a'~, ~2~ when ~z = 'b'~, and ~0~ otherwise.
+
+# print df
+#+BEGIN_SRC python :exports results :results output code :tangle src-usage.py :cache yes :noweb no :session *Python*
+df.print()
+#+END_SRC
+
+#+RESULTS[c5974486ea9b8c12179942896a28703a7f555404]:
 #+begin_src python
-shape: (4, 6)
+shape: (3, 6)
 ┌───────────────────────────────────────────────┐
 │   x     y   z     double_x   x_plus_y   z_num │
 │ i64   i64   str        i64        i64     i32 │
 ╞═══════════════════════════════════════════════╡
-│   3     6   c            6          9       0 │
-│   2     5   b            4          7       2 │
-│   0     3   a            0          3       1 │
-│   1     4   a            2          5       1 │
+│   3     9   c            6         12       0 │
+│   2     8   b            4         10       2 │
+│   1     7   a            2          8       1 │
 └───────────────────────────────────────────────┘
 #+end_src
-
 
 
 * Converting to/from pandas data frames
 :PROPERTIES:
 :CUSTOM_ID: converting-tofrom-pandas-data-frames
 :END:
-If you need to use a package that requires pandas or polars data frames,
-you can convert from a tidypolars4sci =tibble= to either of those
-=DataFrame= formats.
+If one needs to use a package that requires pandas or polars dataframes, you can convert from a tidypolars\(^{4sci} \) ~tibble~ to either of those ~DataFrame~ formats.
 
-#+begin_src python
+#+BEGIN_SRC python :exports code :results none :tangle src-usage.py :cache yes :noweb no :session *Python*
 # convert to pandas
 df = df.to_pandas()
 # or convert to polars
 df = df.to_polars()
 #+end_src
 
-#+RESULTS:
+To convert from a pandas or polars ~DataFrame~ to a tidypolars\(^{4sci}\)'s ~tibble~:
 
-To convert from a pandas or polars =DataFrame= to a tidypolars =tibble=:
-
-#+begin_src python
+#+BEGIN_SRC python :exports code :results none :tangle src-usage.py :cache yes :noweb no :session *Python*
 # convert from pandas
 df = tp.from_pandas(df)
 # or covert from polars
 df = tp.from_polars(df)
 #+end_src
-
-#+RESULTS:

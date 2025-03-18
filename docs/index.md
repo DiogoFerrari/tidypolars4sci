@@ -60,13 +60,21 @@
 
 **tidypolars$^{4sci}$** provides functions that match as closely as possible to R's [Tidyverse](https://www.tidyverse.org/) functions for manipulating data frames and conducting data analysis in Python using the blazingly fast [Polars](https://github.com/pola-rs/polars) as backend.
 
-## Key features
+# Key features
 
-- **Fast**: Uses [Polars](https://docs.pola.rs/) as backend for data manipulation. So it inherits many advantages of Polars: fast, parallel, GPU support, etc.
-- **Tidy**: Keeps the data in tidy (rectangular table) format (no multi-indexes)
-- **Sintax**: While Polars is fast, the sintax is not the most intuitive. The package provides frontend methods that matches R's [Tidyverse](https://www.tidyverse.org/) functions, making it easier for users familiar with that ecosystem to transition to this library.
-- **Extended functinalities**: Polars is extended to facilitate data manipulation and analysis for academic research.
-- **Research**: The package is designed to facilitate academic research, data analysis, and reporting of the results. It provides functions to quickly produce tables using minimal code, and whose output matches the format commonly used in academic publications. Those output formats include LaTeX, Excel, CSV, and others.
+<!-- - **Fast**: Uses [Polars](https://docs.pola.rs/) as backend for data manipulation. So it inherits many advantages of Polars: fast, parallel, GPU support, etc. -->
+<!-- - **Tidy**: Keeps the data in tidy (rectangular table) format (no multi-indexes) -->
+<!-- - **Syntax**: While Polars is fast, the syntax is not the most intuitive. The package provides frontend methods that match R's [Tidyverse](https://www.tidyverse.org/) functions, making it easier for users familiar with that ecosystem to transition to this library. -->
+<!-- - **Extended functinalities**: Polars is extended to facilitate data manipulation and analysis for academic research. -->
+<!-- - **Research**: The package is designed to facilitate academic research, data analysis, and reporting of the results. It provides functions to quickly produce tables using minimal code, and whose output matches the format commonly used in academic publications. Those output formats include LaTeX, Excel, CSV, and others. -->
+
+
+- **Fast**: Uses [Polars](https://docs.pola.rs/) as a backend for data manipulation. Therefore, it inherits many advantages of that module: fast, parallel, GPU support, etc.
+- **Tidy**: Keeps the data in a tidy (rectangular table) format (no multi-indexes).
+- **Syntax**: While Polars is fast, the syntax is not the most intuitive. The package provides frontend methods that match R's [Tidyverse](https://www.tidyverse.org/) functions, making it easier for users familiar with that ecosystem to transition to this library.
+- **Extended functionalities**: Polars is extended to facilitate data manipulation and analysis for academic research.
+- **Research**: The package is designed to facilitate academic research, data analysis, and reporting of results. It provides functions to quickly produce tables using minimal code, and whose output matches the format commonly used in academic publications. Those output formats include LaTeX, Excel, CSV, and others.
+
 
 <!-- ## Details -->
 
@@ -78,8 +86,92 @@
 
 <!-- ## Performance -->
 
-Note: Due to the additional functionalities provided by the module, in some use cases **tidypolars$^{4sci}$** may operate slightly slower than if using Polars directly. Check the section [Performance](performance/overview.md) for details.
+# Syntax
+
+The main motivation for **tidypolars$^{4sci}$** was to provide more readable and elegant syntax in Python for [Polars](https://docs.pola.rs/), similar to R's [Tidyverse](https://www.tidyverse.org/), while (1) extending Polars functionalities to facilitate data manipulation and (2) keeping the advantages of speed and efficiency in data processing provided by that module. Here are some examples of syntax differences:
+
+=== "tidypolars4sci"
+    ```python
+	tab = (df
+		   .filter(tp.col("carb")<8)
+		   .filter(tp.col("name").str.contains("Mazda|Toyota|Merc"))
+		   .mutate(cyl_squared = tp.col("cyl")**2,
+				   cyl_group = tp.case_when(tp.col("cyl")<tp.col("cyl").mean(), "Low cyl",
+ 											tp.col("cyl")>tp.col("cyl").mean(), "High cyl",
+											True, 'Average cyl'),
+                   am = tp.as_factor("am")
+				   )
+			.select("name", "am")
+			.pivot_wider(values_from="name", names_from="am",
+						 values_fn=tp.element().sort().str.concat("; "))
+			)
+    ``` 
+=== "Tidyverse (R)"
+    ```R
+    tab = (df
+        %>% filter(carb < 8)
+        %>% filter(str_detect(name, "Mazda|Toyota|Merc"))
+        %>% mutate(cyl_squared = cyl^2,
+                   cyl_group = case_when(cyl < mean(cyl) ~ "Low cyl",
+                                         cyl > mean(cyl) ~ "High cyl",
+                                         TRUE ~ "Average cyl"),
+                   am = as.factor(am)
+				   )
+        %>% select(name, am)
+        %>% pivot_wider(names_from = am, values_from = name,
+                        values_fn = list(name = ~ paste(sort(.), collapse = "; ")))
+    )
+    ``` 
+=== "Polars"
+    ```python
+    tab = (df.to_polars()
+           .filter(pl.col("carb") < 8)
+           .filter(pl.col("name").str.contains("Mazda|Toyota|Merc"))
+           .with_columns([
+               (pl.col("cyl") ** 2).alias("cyl_squared"),
+               (pl
+                .when(pl.col("cyl") < pl.col("cyl").mean()).then(pl.lit("Low cyl"))
+                .when(pl.col("cyl") > pl.col("cyl").mean()).then(pl.lit("High cyl"))
+                .otherwise(pl.lit("Average cyl")).alias("cyl_group")),
+               (pl.col("am").cast(pl.String).cast(pl.Categorical).alias("am"))
+           ])
+           .select(["name", "am"])
+           .with_columns(idx=0)
+           # pivot-wide
+           .pivot(index='idx', on="am", values="name",
+                  aggregate_function=pl.element().sort().str.concat("; ")
+                  )
+           .drop('idx')
+           )
+    ``` 
+=== "Pandas"
+    ```python
+     tab = (df
+            .query(f"carb < 8")
+            .query(f"name.str.contains('Mazda|Toyota|Merc')")
+            .assign(cyl_squared = lambda col: col["cyl"]**2,
+                    cyl_group = lambda col: pd.cut(col["cyl"], 
+                                                   bins=[-float("inf"), col["cyl"].mean(),
+												          float("inf")],
+                                                   labels=["Low cyl", "High cyl"]),
+                    am = lambda col: col["am"].astype("str"))
+            .filter(["name", "am"])
+            .pivot_table(columns="am", values="name",
+                         aggfunc = lambda x: "; ".join(x)))
+    ``` 
+
+
+
+
+
+
+
+# Performance
+
+
+In most cases, the performance of **tidypolars$^{4sci}$** is comparable to Polars. In some instances, it may operate slightly slower due to the additional functionalities provided by the module. Check the section [Performance](performance/overview.md) for details.
 
 <!-- ## Similar projects -->
 
 <!-- - [tidypolars](https://pypi.org/project/tidypolars/): tidypolars was the starting point of tidypolars4sci -->
+

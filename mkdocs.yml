@@ -7,26 +7,28 @@ repo_name: tidypolars4sci
 use_directory_urls: true
 
 nav:
+  - Overview: index.md
   - User Guide:
-    - Overview: index.md
-    - Installation: usage/installation.md
-    - Basic usage: usage/usage.md
-    - Data manipulation:
+    - <font color="#2a9d8f">Installation</font>: usage/installation.md
+    - <font color="#2a9d8f">Basic usage</font>: usage/usage.md
+    - <font color="#2a9d8f">Data manipulation</font>:
       - Mutate: usage/data-manipulation/mutate.md
-    - Statistics:
+      - Read/Write Files: usage/data-manipulation/read-write.md
+    - <font color="#2a9d8f">Statistics</font>:
       - Descriptive Statistics: usage/statistics/desc.md
       - Frequency Tables: usage/statistics/freq.md
-      - Cross Tables: usage/statistics/tab.md
-    - Reporting:
+      - Crosstables: usage/statistics/tab.md
+    - <font color="#2a9d8f">Reporting</font>:
       - To LaTeX: usage/reporting/to-latex.md
+  - Case Studies:
+    - Pivot wide: case-studies/pivot-wide.md
+    - Regression Tables: case-studies/regression-table.md
+    - Standardizing Variables: case-studies/standardizing.md
   - Performance:
     - performance/overview.md
     - performance/filter.md
     - performance/pivot-wide.md
     - performance/summarise.md
-  - Case Studies:
-    - Pivot wide: case-studies/pivot-wide.md
-    - Regression tables: case-studies/regression-table.md
   - API Reference: api.md
   - Releases: releases.md
 
@@ -51,7 +53,6 @@ theme:
   logo: _css/tidypolars4sci-logo2.png
   features:
     - navigation.tracking
-    - navigation.tracking
     - navigation.instant
     - navigation.tabs
     - navigation.tabs.sticky
@@ -59,15 +60,20 @@ theme:
     - navigation.indexes
     - content.tabs.link
     - content.code.copy
+    - content.code.select
   icon:
     repo: fontawesome/brands/github
   features:
+    # - toc.integrate  # combine right ToC into the left ToC
+    - toc.follow
     - content.code.copy
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.path
-    - toc.integrate 
     - navigation.sections
+    - content.code.annotate # (1)
+
+
 
 # Preview controls
 strict: true
@@ -79,6 +85,7 @@ extra_css:
 
 plugins:
   - search
+  - charts
   - mkdocstrings:
       handlers:
         python:
@@ -107,12 +114,19 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.details
-  - pymdownx.superfences
   - md_in_html
   - pymdownx.blocks.caption
-  - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: vegalite
+          class: vegalite
+          format: !!python/name:mkdocs_charts_plugin.fences.fence_vegalite
+
 
 extra_javascript: 
-    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+  - https://cdn.jsdelivr.net/npm/vega@5
+  - https://cdn.jsdelivr.net/npm/vega-lite@5
+  - https://cdn.jsdelivr.net/npm/vega-embed@6

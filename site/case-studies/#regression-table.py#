@@ -1,0 +1,176 @@
+from docs.src.config import *
+
+def sythetic_data(seed, n=2000):
+    np.random.seed(seed)
+
+    # Parameters for simulation
+    age = np.random.randint(18, 70, size=n)
+    income = np.random.normal(0, 1, size=n)
+    gender = np.random.binomial(1, 0.5, size=n)  # 0 for male, 1 for female
+    ideology = np.random.uniform(-10, 10, size=n)
+    treatment = np.random.binomial(1, 0.5, size=n)  # 0 for control, 1 for treated
+    group = np.random.choice(['a', 'b', 'c'], size=n)
+    partisanship = np.random.choice(['democrat', 'republican'], size=n)
+
+    # Create a DataFrame
+    data = tp.tibble({
+        'age': age,
+        'income': income,
+        'gender': gender,
+        'ideology': ideology,
+        'treatment': treatment,
+        'group': group,
+        'partisanship': partisanship
+    })
+
+    # Logistic regression coefficients
+    coefficients = {
+        'age': 0.02,
+        'income': 0.0001,
+        'gender': -0.5,
+        'ideology': -0.1,
+        'treatment': -.5,
+        'ideology x treatment': -0.3,
+    }
+
+    # Calculate linear predictor
+    linear_predictor = (
+        coefficients['age'] * data.pull('age') +
+        coefficients['income'] * data.pull('income') +
+        coefficients['gender'] * data.pull('gender') +
+        coefficients['ideology'] * data.pull('ideology') +
+        coefficients['treatment'] * data.pull('treatment') + 
+        coefficients['ideology x treatment'] * data.pull('treatment')*data.pull('ideology')
+    )
+
+    # Convert linear predictor to probabilities
+    probabilities = 1 / (1 + np.exp(-linear_predictor))
+    rate_conservatives = linear_predictor + rnorm(size=n, loc=0, scale=1)
+
+    # Simulate binary outcome
+    data = data.mutate(vote_conservative = np.random.binomial(1, probabilities),
+                       rate_conservative = rate_conservatives)
+
+    return data
+
+import tidypolars4sci as tp
+import numpy as np
+# 
+from statsmodels.formula.api import ols as lm
+from statsmodels.formula.api import glm as glm
+from statsmodels.api import families as family
+from numpy.random import normal as rnorm
+import tools4sci as t4
+
+
+# generating the data
+df = sythetic_data(0)
+df.glimpse(".")
+
+def create_formula(outcome, adjusted):
+    if adjusted:
+        # Adjustments are hard-coded here but could have been provided
+        # as arguments for the function instead.
+        adjustments = "income + age + gender"
+    else:
+        adjustments = "1"
+    formula = f"{outcome} ~ treatment * ideology + {adjustments}"
+    return formula
+
+def estimate(data, model, formula):
+    # need to covert to pandas for statsmodels
+    data = data.to_pandas()
+    if model == 'Linear':
+        res = lm(formula, data=data).fit()
+    else:
+        # logit  model with clustered std. errors by the variable 'group'
+        res = glm(formula, data=data, family=family.Binomial()).fit(cov_type="cluster",
+                                                                    cov_kwds={"groups": data["group"]})
+    return res
+    
+def get_summary(fit):
+    res = fit.summary2().tables[1].reset_index(drop=False, names='term')
+    return tp.from_pandas(res)
+
+def predict(fit, data, at):
+    newdata = t4.simulate.newdata(data, at=at)
+    pred = fit.get_prediction(newdata.to_pandas()).summary_frame(alpha=0.05)
+    return pred
+
+res = (df
+       .nest('partisanship')
+       .crossing(outcome = ['rate_conservative', "vote_conservative"],
+                 adjusted = ['Yes', 'No'])
+       .mutate(
+           model = tp.case_when(tp.col("outcome").str.contains('rate'), 'Linear',
+                                tp.col("outcome").str.contains('vote'), 'Logit'),
+           formula = tp.map(['outcome', 'adjusted'], lambda row: create_formula(*row)))
+       .mutate(
+           fit     = tp.map(['data', 'model', 'formula'], lambda row: estimate(*row)),
+           summ    = tp.map(["fit"], lambda fit: get_summary(*fit)),
+           pred    = tp.map(["fit", "data"], lambda row: predict(*row,
+                                                                 at={'treatment':[0, 1],
+                                                                     'ideology':range(-10, 10)}))
+       )
+       )
+res
+
+# explanation:
+# res = (df
+#        .nest('partisanship')
+#        # This expands the grouped data to estimate different models 
+#        # (LPM and Logit), each with and without adjustment
+#        .crossing(outcome = ['rate_conservative', "vote_conservative"],
+#                  adjusted = ['Yes', 'No'])
+#        .mutate(
+#            # this indicates with model will be estimated depending on
+#            # the outcome variable
+#            # rate_coservative: continuous => linear model
+#            # vote_coservative: binary     => logit model
+#            model = tp.case_when(tp.col("outcome").str.contains('rate'), 'Linear',
+#                                 tp.col("outcome").str.contains('vote'), 'Logit'),
+#            # this performs a row-wise operation, creating the regression
+#            # formula depending on the outcome and if the estimation is
+#            # adjusted (the * used in *row unpacks the columns for the function)
+#            formula = tp.map(['outcome', 'adjusted'], lambda row: create_formula(*row)))
+#        .mutate(
+#            # fit the models
+#            fit     = tp.map(['data', 'model', 'formula'], lambda row: estimate(*row)),
+#            # create tidy summaries
+#            summ    = tp.map(["fit"], lambda fit: get_summary(*fit)),
+#            # create table with predicted values 'at' specified values
+#            pred    = tp.map(["fit", "data"], lambda row: predict(*row,
+#                                                                  at={'treatment':[0, 1],
+#                                                                      'ideology':range(-10, 10)}))
+#        )
+#        )
+
+# select the models that will show in the table
+mods = res.filter(tp.col("partisanship")=='democrat')
+# prepare the dictionary (keys will be column names)
+mods = {f"Model {m}\nAdjusted: {a}":fit for m, a, fit in
+        zip(mods.pull('model'),
+            mods.pull('adjusted'),
+            mods.pull('fit')
+            )
+        }
+mods
+
+# from tools4sci
+tab, tabl = t4.report.models2tab(mods,
+                                 latex=True,
+                                 # we can rename covariates
+                                 covar_labels={"income": "Income (std)"},
+                                 kws_latex={'caption': "Example table",
+                                            'label': "tab-example",
+                                            'header':None,
+                                            'align':"lcccc",
+                                            'escape':True,
+                                            'longtable':False,
+                                            'rotate':False
+                                            },
+                                 sanitize='partial'
+                                 )
+
+# here is the tidy table (one can save it in xlsx, or csv)
+tab.print()

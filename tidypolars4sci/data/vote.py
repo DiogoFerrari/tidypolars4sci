@@ -33,8 +33,7 @@ def __load_vote__():
 
     """
     vote.__codebook__ = codebook()
-    return vote
-
+    return tibble(vote)
 
 def codebook():
     data = {

@@ -126,7 +126,7 @@ def desc(x):
 class DescCol(pl.Expr):
     pass
 
-def across(cols, fn = lambda x: x, names_prefix = None):
+def across(cols, fn = lambda x: x, names_prefix = None, names_suffix = None):
     """
     Apply a function across a selection of columns
 
@@ -148,8 +148,10 @@ def across(cols, fn = lambda x: x, names_prefix = None):
     """
     _cols = _col_exprs(_as_list(cols))
     exprs = [fn(_col) for _col in _cols]
-    if names_prefix != None:
+    if names_prefix is not None:
         exprs = [expr.name.prefix(names_prefix) for expr in exprs]
+    if names_suffix is not None:
+        exprs = [expr.name.suffix(names_suffix) for expr in exprs]
     return exprs
 
 def lag(x, n: int = 1, default = None):

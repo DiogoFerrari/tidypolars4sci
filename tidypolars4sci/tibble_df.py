@@ -1358,7 +1358,38 @@ class tibble(pl.DataFrame):
                                  .with_columns(pl.col(cols) .repeat_by(n))
                                  .explode(cols))
             out = out.bind_rows(df_ids.bind_cols(row[col]))
+        out = self.__unnest_cast__(self, out)
         return out
+
+    def __unnest_cast__(self, df_source, df_target):
+        # """
+        # Align the types of columns in df_target to match categorical and enum columns from df_source,
+        # preserving the original column order.
+
+        # Parameters:
+        #     df_source: DataFrame containing categorical and enum columns.
+        #     df_target: DataFrame whose column types need to be aligned.
+
+        # Returns:
+        #     A new DataFrame with types aligned to match df_source for categorical and enum columns,
+        #     preserving column order.
+        # """
+        df_source = df_source.to_polars()
+        df_target = df_target.to_polars()
+        cat_enum_cols = [
+            col for col, dtype in zip(df_source.columns, df_source.dtypes)
+            if dtype in [pl.Categorical, pl.Enum]
+        ]
+
+        for col in cat_enum_cols:
+            if col in df_target.columns:
+                if df_source.schema[col] == pl.Categorical:
+                    df_target = df_target.with_columns(pl.col(col).cast(pl.Categorical))
+                elif isinstance(df_source.schema[col], pl.Enum):
+                    enum_dtype = df_source.schema[col]
+                    df_target = df_target.with_columns(pl.col(col).cast(enum_dtype))
+
+        return from_polars(df_target.select(df_target.columns))
 
     def crossing(self, *args, **kwargs):
         """

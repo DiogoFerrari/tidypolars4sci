@@ -1,6 +1,7 @@
 from pathlib import Path
 from ..io import read_data
 from ..type_conversion import as_factor
+from ..tibble_df import tibble
 
 DATA_DIR = Path(__file__).parent
 
@@ -13,5 +14,5 @@ def __load_diamonds__():
                    # list("DEFGHIJ")
                    color   = as_factor('color'),
                    )
-    return df
+    return tibble(df)
 
