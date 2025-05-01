@@ -15,7 +15,30 @@ class read_data():
     
     def __new__(self, **kws):
         '''
-        fn         filename with path
+        Read data into a tibble.
+
+        Formats supported: csv, dta, xls, xlsx, ods, tsv, txt, tex,
+        dat, sav, rds, Rdata, gspread
+
+        Parameters
+        ----------
+        fn  : str
+            Full path to file, including filename
+
+        cols : list of str
+            List with names of the columns to return.
+            Used with .sav files.
+
+        sep : str (Default ";")
+           Specify the column separator for .csv files
+
+        silently : bool (optional)
+            If True, do now show a completion message
+
+        Returns
+        ------- 
+        tibble
+
         '''
          
         fn=kws.get('fn')

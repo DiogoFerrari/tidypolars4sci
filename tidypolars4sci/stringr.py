@@ -1,6 +1,7 @@
 import polars as pl
 import functools as ft
 from .utils import _as_list, _col_expr
+from .funs import map
 
 __all__ = [
     "paste",
@@ -18,7 +19,8 @@ __all__ = [
     "str_sub",
     "str_to_lower", 
     "str_to_upper",
-    "str_trim"
+    "str_trim",
+    "str_wrap"
 ]
 
 def paste(*args, sep = ' '):
@@ -356,3 +358,27 @@ def _str_trim_right(x):
     Remove trailing whitespace.
     """
     return x.str.replace(r"[ \t]+$", "")
+
+def str_wrap(string, width, sep="list"):
+    """
+    Split string
+
+    Parameters
+    ----------
+    string : str
+        Column name to operate on
+    width : int
+        Width to split the string
+    sep : string
+        One of
+        "\\n": put "\\n" to split the string; return a single string 
+        "list": return a list based on width
+
+    """
+    string = _col_expr(string) 
+    s = string.str.extract_all(r"(.{1,"+f"{width}"+"})")
+    if sep!='list':
+        s = map(s, lambda row: f"{sep}".join(row[0]))
+    return s
+
+        

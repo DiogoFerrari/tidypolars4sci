@@ -1806,7 +1806,7 @@ class tibble(pl.DataFrame):
     
         if not groups:
             res=(res
-                   .group_by(vars_all)
+                 .group_by(vars_all)
                  .summarize(n = n())
                  .mutate(
                        p     = pl.col("n")/pl.col("n").sum(),
@@ -2427,8 +2427,7 @@ class tibble(pl.DataFrame):
             processed_rows = []
             for row_text, row_sep in rows:
                 # Skip processing for rows that are table rules.
-                if row_text.strip() in ('\\toprule', '\\midrule', '\\bottomrule') or\
-                   bool(re.search(pattern="cmidrule", string=row_text)):
+                if row_text.strip() in ('\\toprule', '\\midrule', '\\bottomrule'):
                     processed_rows.append(row_text + row_sep)
                     continue
 
@@ -2591,8 +2590,7 @@ def from_pandas(df):
     
 _allowed_methods = [
     'dtypes', 'frame_equal',
-    'get_columns', 'lazy', 'pipe',
-    'iter_rows'
+    'get_columns', 'lazy', 'pipe'
     ]
 
 _polars_methods = [

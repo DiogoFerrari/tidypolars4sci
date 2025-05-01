@@ -1,10 +1,13 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["hatchling"]           # when with internet access
+build-backend = "hatchling.build"  # when with internet access
+# requires = ["setuptools", "wheel"]     # When offline
+# build-backend = "setuptools.build_meta"# When offline
+
 
 [project]
 name = "tidypolars4sci"
-version = "0.0.1.21"
+version = "0.0.1.22"
 description = "Tidyverse-like functions for python polars with extended functionalities for science."
 authors = [{name = "Diogo Ferrari", email = "diogoferrari@gmail.com"}]
 maintainers = [{name = "Diogo Ferrari", email = "diogoferrari@gmail.com"}]

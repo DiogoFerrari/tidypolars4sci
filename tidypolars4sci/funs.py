@@ -164,7 +164,7 @@ def replace_null(x, replace = None):
     if replace == None: return x
     return x.fill_null(replace)
 
-def round(x, decimals = 0):
+def round(x, digits = 0):
     """
     Get column standard deviation
 
@@ -172,7 +172,7 @@ def round(x, decimals = 0):
     ----------
     x : Expr, Series
         Column to operate on
-    decimals : int
+    digits : int
         Decimals to round to
 
     Examples
@@ -180,7 +180,7 @@ def round(x, decimals = 0):
     >>> df.mutate(x = tp.round(col('x')))
     """
     x = _col_expr(x)
-    return x.round(decimals)
+    return x.round(digits)
 
 def row_number():
     """
