@@ -238,7 +238,7 @@ def map(cols, _fun):
 
     """
     # map_groups give a list of lists. I flatten it so that _fun can refer to the list of
-    # columns (cols) simply bu index
+    # columns (cols) simply by index
     flatten = lambda cols: [item for series in cols for item in list(series)]
     res = pl.map_groups(cols, lambda cols: _fun(flatten(cols))).over(pl.int_range(pl.len()))
     return res

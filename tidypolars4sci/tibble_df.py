@@ -1600,6 +1600,10 @@ class tibble(pl.DataFrame):
                        fmt_str_lengths=str_length):
             print(self)
 
+    def iterrows(self):
+        yield from self.to_polars().iter_rows(named=True)
+        
+
     # Statistics 
     # ----------
     def descriptive_statistics(self, vars=None, groups=None,
@@ -1661,6 +1665,10 @@ class tibble(pl.DataFrame):
             groups = {groups:groups}
         elif isinstance(groups, list):
             groups = {g:g for g in groups}
+        
+        if isinstance(groups, dict):
+            for g in groups.keys():
+                vars.pop(g, None)
 
         # select only numerical
         vars_num = {var:label for var, label in vars.items() if
@@ -2497,6 +2505,37 @@ class tibble(pl.DataFrame):
         None
         """
         self.to_polars().write_csv(*args, **kws)
+
+    def colnames(self, regex='.', type=None, include_factor=True):
+        """
+        Return the names of numeric columns in `self` that match 'regex'
+        type: (str)
+            
+        include_factor: (boolean)
+            When type=string, include or not factors
+        
+        """
+        cols = self.select(matches(regex)).names
+
+        if type:
+            if type=='numeric':
+                selector = pl.selectors.numeric()
+            if type=='integer':
+                selector = pl.selectors.integer()
+            if type=='string':
+                if include_factor:
+                    selector = pl.selectors.string() | pl.selectors.categorical() | pl.selectors.enum()
+                else:
+                    selector = pl.selectors.string()
+            if type=='factor':
+                selector = pl.selectors.categorical() | pl.selectors.enum()
+            if type=='date':
+                selector = pl.selectors.date()
+            cols_type = self.to_polars().select(selector).columns
+
+            cols = [c for c in cols_type  if c in cols]
+
+        return cols
 
 class TibbleGroupBy(pl.dataframe.group_by.GroupBy):
 

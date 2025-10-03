@@ -1,5 +1,6 @@
 import polars as pl
 import copy
+import re
 from .utils import (
     _as_list,
     _col_expr,
@@ -11,6 +12,8 @@ from .utils import (
     _is_string,
     _str_to_lit
     )
+
+
 
 __all__ = ["contains", "ends_with", "everything", "starts_with",
            'matches', "desc", "across", "lag", "DescCol"]
@@ -176,3 +179,4 @@ def lag(x, n: int = 1, default = None):
     """
     x = _col_expr(x)
     return x.shift(n, fill_value = default)
+
