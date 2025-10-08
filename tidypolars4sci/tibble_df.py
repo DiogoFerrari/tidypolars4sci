@@ -1207,12 +1207,12 @@ class tibble(pl.DataFrame):
         >>> df = tp.tibble(a = ["a", "a", "a"], b = ["b", "b", "b"], c = range(3))
         >>> df.unite("united_col", unite_cols = ["a", "b"])
         """
-        if len(unite_cols) == 0:
-            unite_cols = self.names
-        else: 
-            unite_cols = _col_exprs(unite_cols)
-            unite_cols = self.select(unite_cols).names
-        out = self.mutate(str_c(*unite_cols, sep = sep).alias(col))
+        # if len(unite_cols) == 0:
+        #     unite_cols = self.names
+        # else: 
+            # unite_cols = _col_exprs(unite_cols)
+            # unite_cols = self.to_polars().select(unite_cols).columns
+        out = self.mutate(**{col : str_c([pl.col(c) for c in unite_cols], sep = sep)})
         out = out.relocate(col, before = unite_cols[0])
         if remove == True:
             out = out.drop(unite_cols)
