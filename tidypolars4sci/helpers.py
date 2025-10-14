@@ -1,4 +1,5 @@
 import polars as pl
+import polars.selectors as cs
 import copy
 import re
 from .utils import (
@@ -73,7 +74,7 @@ def everything():
     >>> df = tp.tibble({'a': range(3), 'b': range(3), 'c': ['a', 'a', 'b']})
     >>> df.select(everything())
     """
-    return "*"
+    return matches('.')
 
 def starts_with(match, ignore_case = True):
     """

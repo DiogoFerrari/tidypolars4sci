@@ -11,7 +11,7 @@ from .utils import (
     _str_to_lit
     )
 
-__all__ = ["case_when", "n_distinct", 'map']
+__all__ = ["case_when", "n_distinct", 'map', 'round']
 
 def between(x, left, right):
     """

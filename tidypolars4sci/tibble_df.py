@@ -8,11 +8,11 @@ from .utils import (_as_list,
                     _uses_by
                     )
 from .funs import map
-from .stringr import str_c
+from .stringr import str_c, str_replace_all
 from .stats import *
 from .reexports import *
 from .type_conversion import *
-from .helpers import everything, matches, DescCol, desc
+from .helpers import everything, matches, DescCol, desc, across
 import copy
 from operator import not_
 import numpy as np
@@ -594,7 +594,8 @@ class tibble(pl.DataFrame):
             on = list(set(self.names) & set(df.names))
         return super().join(df, on, 'outer',
                             left_on = left_on,
-                            right_on= right_on, suffix= suffix).pipe(from_polars)
+                            right_on= right_on,
+                            suffix= suffix).pipe(from_polars)
 
     def pivot_longer(self,
                      cols = None,
@@ -1008,6 +1009,9 @@ class tibble(pl.DataFrame):
         cols_to_select = [col for col in cols_to_select 
                           if col in self.names 
                           or (col.startswith("^") and col.endswith("$"))] 
+        # # remove duplicated
+        # cols_to_select = list(set(cols_to_select))
+        
         # cols = [col for col in cols if col in self.names or
         #         (col.startswith("^") and col.endswith("$"))]
         
@@ -2011,6 +2015,7 @@ class tibble(pl.DataFrame):
                  group_rows_by = None,
                  group_title_align = 'l',
                  footnotes = None,
+                 footnotes_width = '\\linewidth',
                  index = False,
                  escape = False,
                  longtable = False,
@@ -2018,7 +2023,8 @@ class tibble(pl.DataFrame):
                  rotate = False,
                  scale = True,
                  parse_linebreaks=True,
-                 tabular = False
+                 tabular = False,
+                 *args, **kws
                  ):
         """
         Convert the object to a LaTeX tabular representation.
@@ -2063,6 +2069,10 @@ class tibble(pl.DataFrame):
             A dictionary where keys are column alignments ('c', 'r', or 'l')
             and values are the respective footnote strings.
 
+        footnotes_width : str, None
+            Width of the footnote. Example: '\\linewidth', '40pt'
+            If None, impose no restriction to the width
+
         group_rows_by : str, default=None
             Name of the variable in the data with values to group
             the rows by.
@@ -2104,9 +2114,13 @@ class tibble(pl.DataFrame):
             str
                 A LaTeX formatted string of the tibble.
         """
+        NEW_LINE_MARKER = '__new_lines__'
 
         assert footnotes is None or isinstance(footnotes, dict),\
             "'footnote' must be a dictionary"
+
+        # remove \n in the table cels .... (see below)
+        self = self.mutate(across(matches("."), lambda col: str_replace_all(col, '\n', NEW_LINE_MARKER)))
 
         # this must be the first operation
         if group_rows_by is not None:
@@ -2143,8 +2157,9 @@ class tibble(pl.DataFrame):
                           position = position
                           ))
 
-        # split to add elements
         rows = tabl.splitlines()
+        # put \n back .... (see above)
+        rows = [r.replace(NEW_LINE_MARKER, '\n') for r in rows]
 
         if group_rows_by is not None:
             rows = self.__to_latex_group_rows__(group_rows_by, group_title_align, ncols, rows)
@@ -2159,7 +2174,14 @@ class tibble(pl.DataFrame):
             for align_note, footnote in footnotes.items():
                 footnote = [footnote] if isinstance(footnote, str) else footnote
                 for fni in footnote:
-                    notes = f"\\multicolumn{{{ncols}}}{{{align_note}}}{{{fni}}}\\\\"
+                    if footnotes_width is None:
+                        notes = f"\\multicolumn{{{ncols}}}{{{align_note}}}{{{fni}}}\\\\"
+                    else:
+                        # notes = (f"\\multicolumn{{{ncols}}}{{{align_note}}}{{\\begin{{minipage}}[t]"+
+                        #          f"{{{footnotes_width}}}{fni}\\end{{minipage}}}}\\\\")
+                        notes = (f"\\multicolumn{{{ncols}}}{{@{{}}p{{\\dimexpr {footnotes_width}\\relax}}@{{}}}}"+
+                                 f"{{\\footnotesize {fni}}}\\\\")
+
                     footnotes_formated += notes
                     if not longtable:
                         row = [idx for idx, s in enumerate(rows) if 'bottomrule' in s ][0]
@@ -2190,7 +2212,7 @@ class tibble(pl.DataFrame):
 
         # linebreaks:
         if parse_linebreaks:
-            tabl = self.__to_latex_breaklines__(tabl)    
+            tabl = self.__to_latex_breaklines__(tabl, longtable)
 
         return tabl
 
@@ -2297,10 +2319,12 @@ class tibble(pl.DataFrame):
         \\endfoot
         {footnote}
         \\endlastfoot
+        % ----------------- BODY begins -----------------
         """
 
-        longtable_begin = f'\\begin{{longtable}}{{{align}}}'
-        longtable_end   = f'\\end{{longtable}}'
+        longtable_begin = f'\\begin{{longtable}}{{{align}}}\n\n\\caption[]{{{caption}}}\\\\'
+          
+        longtable_end   = f'% ----------------- BODY ends -----------------\n\\end{{longtable}}'
         if longtable_singlespace:
             longtable_begin = '\\begin{spacing}{1}\n' + longtable_begin 
             longtable_end   =  longtable_end + "\n\\end{spacing}"
@@ -2360,6 +2384,9 @@ class tibble(pl.DataFrame):
             rows[i] = '\\hspace{1em}' + rows[i] 
 
         # insert groups heading rows
+        # print(f"First row position: {position_first_row}" )
+        # print(groups_row_locations)
+        # [print(f"{i+1} {r}") for i, r in enumerate(rows)]
         for key, pos in sorted(groups_row_locations.items(),
                                key=lambda item: item[1], reverse=True):
             group_title = f"\\addlinespace[0.3em]\\multicolumn{{{ncols}}}{{{group_title_align}}}{{ \\textbf{{{key}}} }}\\\\"
@@ -2399,7 +2426,7 @@ class tibble(pl.DataFrame):
 
         return last_table_row_index 
 
-    def __to_latex_breaklines__(self, table_str):
+    def __to_latex_breaklines__(self, table_str, longtable=False):
         # Given a LaTeX table string containing a tabular environment,
         # replace internal newline characters within table cells (i.e. those
         # that occur within the cell content, not the row terminators) by 
@@ -2467,8 +2494,12 @@ class tibble(pl.DataFrame):
             return begin_tabular + new_content + end_tabular
 
         # Process only the tabular environment in the table string.
+        if not longtable:
+            regex = r'(\\begin\{tabular\}\{[^}]*\})(.*?)(\\end\{tabular\})'
+        else:
+            regex = r'(. ----------------- BODY begins -----------------)(.*?)(. ----------------- BODY ends -----------------)'
         new_table_str = re.sub(
-            r'(\\begin\{tabular\}\{[^}]*\})(.*?)(\\end\{tabular\})',
+            regex,
             process_tabular,
             table_str,
             flags=re.DOTALL
