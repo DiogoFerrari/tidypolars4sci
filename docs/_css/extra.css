@@ -1,3 +1,15 @@
+/* Apply to all headings */
+.md-content h1,
+.md-content h2,
+.md-content h3,
+.md-content h4,
+.md-content h5,
+.md-content h6 {
+  font-weight: bold;
+  border-bottom: 2px solid var(--md-default-fg-color--light); /* subtle underline */
+  padding-bottom: 0.25em;
+  margin-bottom: 0.75em;
+}
 
 /* ================== Change BACKGROUND COLOR for function signatures ================== */
 .md-typeset .highlight {

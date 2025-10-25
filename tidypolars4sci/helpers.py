@@ -17,7 +17,8 @@ from .utils import (
 
 
 __all__ = ["contains", "ends_with", "everything", "starts_with",
-           'matches', "desc", "across", "lag", "DescCol"]
+           'matches', "desc", "across", "lag", "DescCol", "where",
+           'is_numeric']
 
 def contains(match, ignore_case = True):
     """
@@ -181,3 +182,20 @@ def lag(x, n: int = 1, default = None):
     x = _col_expr(x)
     return x.shift(n, fill_value = default)
 
+def where(col_type):
+    """
+    Select columns by type using a string
+
+    Options:
+        date, datetime, float, integer,
+        numeric, string
+
+    Examples
+    --------
+    >>> df.select(tp.where("integer"))
+    """
+    out = _col_types[col_type]
+    return out
+
+def is_numeric():
+    return cs.numeric()

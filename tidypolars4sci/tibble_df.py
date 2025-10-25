@@ -17,6 +17,7 @@ import copy
 from operator import not_
 import numpy as np
 import pandas as pd
+import polars.selectors as cs
 import re
 from itertools import chain
 import warnings
@@ -2120,7 +2121,9 @@ class tibble(pl.DataFrame):
             "'footnote' must be a dictionary"
 
         # remove \n in the table cels .... (see below)
-        self = self.mutate(across(matches("."), lambda col: str_replace_all(col, '\n', NEW_LINE_MARKER)))
+        char_cols = self.to_polars().select(~cs.numeric()).columns
+        if char_cols:
+            self = self.mutate(across(char_cols, lambda col: str_replace_all(col, '\n', NEW_LINE_MARKER)))
 
         # this must be the first operation
         if group_rows_by is not None:
