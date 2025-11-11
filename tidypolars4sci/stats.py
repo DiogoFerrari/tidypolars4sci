@@ -8,7 +8,7 @@ __all__ = [
     # Agg stats
     "abs", "cor", "cov", "count", "first", "last", "length",
     "max", "mean", "median", "min", "n",
-     "quantile", "sd", "sum", "var", "min_rank",
+     "quantile", "sd", "sum", "var", "rank",
     "floor", 'scale'
 ]
 
@@ -346,7 +346,7 @@ def var(x):
     x = _col_expr(x)
     return x.var()
 
-def min_rank(x):
+def rank(x, method='dense'):
     """
     Assigns a minimum rank to each element in the input list, handling ties by
     assigning the same (lowest) rank to tied values. The next distinct value's rank
@@ -354,8 +354,15 @@ def min_rank(x):
 
     Parameters
     ----------
-    x : list
-        A list of values (numeric or otherwise) to be ranked.
+    x : str
+        Column to operate on
+
+    method : str
+        dense (default): Assigns ranks in a consecutive manner, without gaps, even for ties.
+        average : Assigns the average rank to tied values.
+        min: Assigns the minimum rank to tied values.
+        max: Assigns the maximum rank to tied values.
+        ordinal: Assigns a distinct rank to each value based on its order of appearance.
 
     Returns
     -------
@@ -371,32 +378,9 @@ def min_rank(x):
     >>> min_rank(["b", "a", "a", "c"])
     [2, 1, 1, 4]
     """
-    # Get the indices of the x sorted by their corresponding elements
-    indices = sorted(range(len(x)), key=lambda i: x[i])
-    ranks = [None] * len(x)
-    
-    current_rank = 1
-    i = 0
-    n = len(x)
-    
-    # Iterate through sorted x and assign ranks
-    while i < n:
-        val = x[indices[i]]
-        # Find how many times this value is repeated
-        j = i
-        while j < n and x[indices[j]] == val:
-            j += 1
-        
-        # The group from i to j-1 (inclusive) are all the same value
-        count = j - i
-        # Assign the current_rank to all tied elements
-        for k in range(i, j):
-            ranks[indices[k]] = current_rank
-        # Increment the rank by the count of elements in this tie group
-        current_rank += count
-        i = j
-    
-    return ranks
+
+    x = _col_expr(x)
+    return x.rank(method=method)
 
 def scale(x):
     """

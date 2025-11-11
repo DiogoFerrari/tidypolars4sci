@@ -12,7 +12,7 @@ from .stringr import str_c, str_replace_all
 from .stats import *
 from .reexports import *
 from .type_conversion import *
-from .helpers import everything, matches, DescCol, desc, across
+from .helpers import everything, matches, DescCol, desc, across, where
 import copy
 from operator import not_
 import numpy as np
@@ -860,8 +860,11 @@ class tibble(pl.DataFrame):
 
         Parameters
         ----------
-        replace : dict
-            Dictionary of column/replacement pairs
+        replace : dict, str, int, or float
+            Dictionary of column/replacement pairs, or values to
+            replace null values. If not dict, replace in all columns.
+            If replace is a string, it will replace nulls in all
+            string columns, and so on.
 
         Returns
         -------
@@ -870,14 +873,40 @@ class tibble(pl.DataFrame):
 
         Examples
         --------
-        >>> df = tp.tibble(x = [0, None], y = [None, None])
-        >>> df.replace_null(dict(x = 1, y = 2))
+        >>> df = tp.tibble({'a': [None, 'abc', 'cde'], 'b':[None, 1, 2], 'c': [None, 1.1, 2.2]})
+        >>> df.replace_null({'a': 'New value'})
+        >>> df.replace_null({'a': 1})
+        >>> df.replace_null({'b': 1})
+        >>> df.replace_null({'b': 1.1})
+        >>> df.replace_null({'c': 1})
+        >>> df.replace_null('a')
+        >>> df.replace_null(1)
+        >>> df.replace_null(1.1)
         """
-        if replace == None: return self
-        if type(replace) != dict:
-            ValueError("replace must be a dictionary of column/replacement pairs")
-        replace_exprs = [col(key).fill_null(value) for key, value in replace.items()]
-        return self.mutate(*replace_exprs)
+        assert replace is not None, "'replace' must be provided."
+        assert not isinstance(replace, list), "'replace' cannot be a list."
+        
+        replace_dict = {}
+        if isinstance(replace, str):
+            cols = self.select(where("string")).names
+            if cols:
+                replace_dict = {col:replace for col in cols}
+
+        elif isinstance(replace, float | int):
+            cols = self.select(where("numeric")).names
+            if cols:
+                replace_dict = {col:replace for col in cols}
+
+        elif isinstance(replace, dict):
+            replace_dict = replace
+
+        if replace_dict:
+            replace_exprs = [pl.col(key).fill_null(value) for key, value in replace_dict.items()]
+            res = self.mutate(*replace_exprs)
+        else:
+            res = self
+
+        return res
 
     def separate(self, sep_col, into, sep = '_', remove = True):
         """
@@ -950,7 +979,10 @@ class tibble(pl.DataFrame):
             Columns to select. It can combine names, list of names,
             and a dict. If dict, it will rename the columns based
             on the dict.
-            It also accepts tp.matches(<regex>) and tp.contains(<str>)
+            It also accepts helper functions:
+            - tp.matches(<regex>)
+            - tp.contains(<str>)
+            - tp.where(<str>)
 
         Examples
         --------
@@ -958,27 +990,32 @@ class tibble(pl.DataFrame):
         >>> df.select('a', 'b')
         >>> df.select(col('a'), col('b'))
         >>> df.select({'a': 'new name'}, tp.matches("c"))
+        >>> df.select(tp.where('numeric'))
         """
         # convert to list if dict.keys or dict.values are used
         cols_to_select = []
         cols_to_rename = {}
-        for arg in args:
-            if isinstance(arg, {}.keys().__class__) or\
-               isinstance(arg, {}.values().__class__):
-                cols_to_select += list(arg)
+        if len(args)==1 and cs.is_selector(*args):
+            cols_to_select = self.to_polars().select(*args).columns
+        else:
+            for arg in args:
+                if isinstance(arg, {}.keys().__class__) or\
+                   isinstance(arg, {}.values().__class__):
+                    cols_to_select += list(arg)
 
-            elif isinstance(arg, dict):
-                cols_to_select += [col for col,_ in arg.items()] 
-                cols_to_rename |= arg 
-                
-            elif isinstance(arg, str):
-                cols_to_select += [arg]
-                
-            elif isinstance(arg, list):
-                cols_to_select += arg
-                
-            elif isinstance(arg, set):
-                cols_to_select += list(arg)
+                elif isinstance(arg, dict):
+                    cols_to_select += [col for col,_ in arg.items()] 
+                    cols_to_rename |= arg 
+
+                elif isinstance(arg, str):
+                    cols_to_select += [arg]
+
+                elif isinstance(arg, list):
+                    cols_to_select += arg
+
+                elif isinstance(arg, set):
+                    cols_to_select += list(arg)
+
         
         # # rename columns if dict is used
         # cols_dict = [d for d in args if isinstance(d, dict)]
@@ -1356,7 +1393,10 @@ class tibble(pl.DataFrame):
         # return out.pipe(from_polars)
         out = tibble()
         for row in self.to_polars().iter_rows(named=True):
-            n = row[col].nrow
+            if isinstance(row[col], tibble):
+                n = row[col].nrow
+            elif isinstance(row[col], list):
+                n = len(row[col])
             ids = {c:v for c, v in row.items() if c not in col}
             cols = list(ids.keys())
             df_ids = from_polars(pl.DataFrame(ids)

@@ -17,8 +17,7 @@ from .utils import (
 
 
 __all__ = ["contains", "ends_with", "everything", "starts_with",
-           'matches', "desc", "across", "lag", "DescCol", "where",
-           'is_numeric']
+           'matches', "desc", "across", "lag", "DescCol", "where"]
 
 def contains(match, ignore_case = True):
     """
@@ -187,15 +186,40 @@ def where(col_type):
     Select columns by type using a string
 
     Options:
-        date, datetime, float, integer,
-        numeric, string
+        character : factor (ordered or unordered) and string
+        string    : only strings, exclude factors
+        factor    : ordered or unordered factors
+        ordered   : only ordered factors
+        unordered : only unordered factors
+
+        numeric   : float or integet
+        float     : only float
+        integer   : only integer
+    
+        date      : date
+        datetime  : data and time
 
     Examples
     --------
+    >>> from tidypolars4sci.data import mtcars
+    >>> df = mtcars
     >>> df.select(tp.where("integer"))
+    >>> df.select(tp.where("numeric"))
+    >>> df.select(tp.where("string") | tp.where("integer"))
     """
+    _col_types = {
+        "character": cs.exclude(cs.numeric()),
+        "string"   : cs.string(),
+        'factor'   : cs.exclude(cs.string(), cs.numeric()),
+        'ordered'  : cs.exclude(cs.string(), cs.categorical(), cs.numeric()),
+        'unordered'  : cs.categorical(),
+
+        "numeric" : cs.numeric(),
+        "float"   : cs.float(),
+        "integer" : cs.integer(),
+
+        "date"    : cs.date(),
+        "datetime": cs.datetime(),
+    }
     out = _col_types[col_type]
     return out
-
-def is_numeric():
-    return cs.numeric()
