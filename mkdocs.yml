@@ -10,10 +10,13 @@ nav:
   - Overview: index.md
   - User Guide:
     - <font color="#2a9d8f">Installation</font>: usage/installation.md
-    - <font color="#2a9d8f">Basic usage</font>: usage/usage.md
+    - <font color="#2a9d8f">Overview</font>: usage/usage.md
+    - <font color="#2a9d8f">Read/Write Files</font>:
+      - Read Files: usage/read.md
+      - Write Files: usage/write.md
+      - Convert from/to pandas/polars: usage/from-to-pandas-polars.md
     - <font color="#2a9d8f">Data manipulation</font>:
       - Mutate: usage/data-manipulation/mutate.md
-      - Read/Write Files: usage/data-manipulation/read-write.md
     - <font color="#2a9d8f">Statistics</font>:
       - Descriptive Statistics: usage/statistics/desc.md
       - Frequency Tables: usage/statistics/freq.md

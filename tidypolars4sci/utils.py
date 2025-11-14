@@ -1,7 +1,13 @@
+import inspect
 import polars as pl
 import polars.selectors as cs
 from operator import not_
 from itertools import chain
+from pathlib import Path
+from typing import Union
+from urllib.parse import urlparse
+from urllib.request import url2pathname
+
 
 __all__ = []
 
@@ -115,3 +121,55 @@ def _str_to_lit(x):
     if _is_string(x):
         x = pl.lit(x)
     return x
+
+def _filter_kwargs_for(func, kwargs):
+    sig = inspect.signature(func)
+    allowed = sig.parameters.keys()
+    return {k: v for k, v in kwargs.items() if k in allowed}
+
+def _expand_to_full_path(p: Union[str, Path]) -> str:
+    """
+    Convert a relative path, '~' path, or Path object
+    into a fully expanded absolute string path.
+    """
+    # Ensure it is a Path object
+    p = Path(p)
+
+    # Expand home (~) and get absolute path
+    return str(p.expanduser().resolve())
+
+def _expand_to_full_path_or_url(p: Union[str, Path]) -> str:
+    # """
+    # Convert a filesystem path (relative, '~', or Path) into a fully expanded
+    # absolute string path.
+
+    # If `p` is a URL (e.g. 'https://...'), it is returned unchanged.
+    # If `p` is a file URL (e.g. 'file:///home/user/file.txt'),
+    # it is converted to a local absolute path.
+    # """
+    if not p:
+        return p
+        
+
+    # If it's already a Path, we know it's a filesystem path, not a URL
+    if isinstance(p, Path):
+        return str(p.expanduser().resolve())
+
+    # Otherwise, it's a string: might be URL or path
+    s = str(p)
+
+    # Quick check: treat strings containing '://' as potential URLs
+    if "://" in s:
+        parsed = urlparse(s)
+
+        # file:// URL -> convert to local path
+        if parsed.scheme == "file":
+            local_path = url2pathname(parsed.path)
+            return str(Path(local_path).expanduser().resolve())
+
+        # Other URL schemes (http, https, s3, etc.) -> return unchanged
+        if parsed.scheme:
+            return s
+
+    # Otherwise, treat it as a normal filesystem path
+    return str(Path(s).expanduser().resolve())

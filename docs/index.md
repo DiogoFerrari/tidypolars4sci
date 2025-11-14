@@ -57,6 +57,7 @@
 <!--   </div> -->
 <!-- </div> -->
 
+The primary motivation behind **tidypolars$^{4sci}$** is to streamline and enhance the process of data analysis in Python, specifically aimed at analysis for publication in academic journals. **tidypolars$^{4sci}$** aims to empower researchers and analysts to **organize data and conduct and report data analyses** more efficiently and effectively, with minimal code, optimized computation, and Tidyverse-like syntax.
 
 **tidypolars$^{4sci}$** provides functions that match as closely as possible to R's [Tidyverse](https://www.tidyverse.org/) functions for manipulating data frames and conducting data analysis in Python using the blazingly fast [Polars](https://github.com/pola-rs/polars) as backend.
 

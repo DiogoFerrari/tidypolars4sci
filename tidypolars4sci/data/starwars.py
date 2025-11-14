@@ -5,7 +5,7 @@ from ..tibble_df import tibble
 DATA_DIR = Path(__file__).parent
 
 def __load_starwars__():
-    starwars = read_data(fn=DATA_DIR / "starwars.rda", sep=',', silently=True)
+    starwars, _ = read_data(fn=DATA_DIR / "starwars.rda", sep=',', silently=True)
     starwars.__doc__ = """
     Starwars characters dataset.
 

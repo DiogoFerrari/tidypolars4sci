@@ -1,23 +1,15 @@
 
-* Prambule :noexport:
 
 #+NAME: config
-#+BEGIN_SRC python :exports none :results value code :tangle freq.py :cache yes :hlines yes :colnames yes :noweb no :session *Python*
+#+BEGIN_SRC python :exports none :results slient :tangle freq.py :cache yes :hlines yes :colnames yes :noweb no :session *Python*
 from docs.src.config import *
 #+END_SRC
 
-#+RESULTS[d9202141f3b01493eca2db892e4944ee4e321f41]: config
-#+begin_src python
-None
-#+end_src
+#+RESULTS[cbe90c9f2e2559afcd7081cbb0d7715cda6609bc]: config
 
 
 
 
-* Basic usage
-:PROPERTIES:
-:CUSTOM_ID: basic-usage
-:END:
 tidypolars\(^{4sci} \) methods are designed to work like tidyverse functions. This creates a dataframe:
 
 #+BEGIN_SRC python :exports code :results none :tangle src-usage.py :cache yes :noweb no :session *Python* :linenums 1
@@ -100,24 +92,3 @@ shape: (3, 6)
 #+end_src
 
 
-* Converting to/from pandas data frames
-:PROPERTIES:
-:CUSTOM_ID: converting-tofrom-pandas-data-frames
-:END:
-If one needs to use a package that requires pandas or polars dataframes, you can convert from a tidypolars\(^{4sci} \) ~tibble~ to either of those ~DataFrame~ formats.
-
-#+BEGIN_SRC python :exports code :results none :tangle src-usage.py :cache yes :noweb no :session *Python*
-# convert to pandas
-df = df.to_pandas()
-# or convert to polars
-df = df.to_polars()
-#+end_src
-
-To convert from a pandas or polars ~DataFrame~ to a tidypolars\(^{4sci}\)'s ~tibble~:
-
-#+BEGIN_SRC python :exports code :results none :tangle src-usage.py :cache yes :noweb no :session *Python*
-# convert from pandas
-df = tp.from_pandas(df)
-# or covert from polars
-df = tp.from_polars(df)
-#+end_src

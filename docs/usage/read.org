@@ -1,0 +1,347 @@
+
+
+** Prambule :noexport:
+
+#+BEGIN_SRC python :exports none :results output code :tangle src-read-write.py :cache yes :noweb no :session *Python* :title Loading data :linenums 1
+from docs.src.config import *
+import os
+
+# set working folder to the folder with files
+os.chdir(os.path.expanduser("../src/data/"))
+#+END_SRC
+
+#+RESULTS[b2465b8f21a04e2f8911396c288a524f046dd4ab]:
+#+begin_src python
+#+end_src
+
+
+
+** Read Data
+
+Reading files from disk is handled by the function method ~read_data()~. This same function can be used regardless of the file type. The function accepts relative paths and various file formats, such as ~csv~, ~xlsx~, ~txt~, ~dta~, ~Rdata~, ~rds~, ~sav~, and others. The type of the file is inferred from the file extension.
+
+The extensions currently supported are:
+
+# 
+#+BEGIN_SRC python :exports results :results output code org :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+tp.read_data.get_accepted_file_formats(_print=True)
+#+END_SRC
+
+#+RESULTS[c795a12edb4f5de49aa2f6240fd1ef4e5188e8a1]:
+#+begin_src org
+- csv-like: csv, dat, tsv, txt
+- excel-like: ods, xls, xlsx, xlt, xltx
+- R files: rda, rdata, rds
+- Stata files: dta
+- SPSS files: sav
+- URL: url with any of the supported file types
+- Google Drive Spreadsheet: see documentation
+#+end_src
+
+It also supports files with:
+- Hierarchical headings. See the example [[#files-with-hierarchical-headings][here]].
+- Labeled data. See the examples [[#files-with-labels][here]].
+
+The function ~read_data()~ will return a tidypolars\(^{4sci}\) ~tibble~ or, if the file contains labeled data, a tuple (~tibble~, ~DATA_LABELS~).
+
+** Examples
+*** Simple example (CSV file)
+
+Here is the file used in this example: [[file:../src/data/example.csv][example.csv]]. To read this file into Python, use:
+
+# read
+#+BEGIN_SRC python :exports both :results output code :tangle src-read-write.py :cache yes :noweb no :session *Python* :title Loading data :linenums 1
+import tidypolars4sci as tp
+
+fn = "example.csv"     # change the file path to where your saved the file
+df = tp.read_data(fn=fn)
+
+#+END_SRC
+
+#+RESULTS[3fe1b8ad70d7e5bbde9f9731986ffdb943166ddd]:
+#+begin_src python
+Loading data 'example.csv'... done!
+#+end_src
+
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-read-write.py :cache yes :noweb no :session *Python* :linenums 1
+
+df.head().print()
+
+#+END_SRC
+
+#+RESULTS[3cb95aeb0947d72485132554dfe7cd5450b975e4]:
+#+begin_src python
+shape: (3, 2)
+┌───────────┐
+│   a     b │
+│ i64   i64 │
+╞═══════════╡
+│   1     4 │
+│   2     5 │
+│   3     6 │
+└───────────┘
+#+end_src
+
+*** Labelled data (Rdata, dta, etc.)
+:PROPERTIES:
+:CUSTOM_ID: files-with-labels
+:END:
+
+Some file types, such as SPSS (~.sav~), Stata (~.dta~), and R (~.rda, .Rdata~, etc.), support variable and value labels. When reading data from these files, the ~read_data~ function returns a tuple ~(data, DATA_LABELS)~.
+
+
+The ~DATA_LABELS~ contains two properties:
+
+- ~variables~: a dictionary with variable names (dictionary keys) and their labels (dictionary values). Variables with no labels in the file are represented in the dictionary with their variable names as both the key and the value.
+- ~values~: a dictionary with variable names (dictionary keys) and the labels of the variable values (dictionary values). Variables with no labeled values are omitted from the value label dictionary.
+
+Here is an example with a Stata file:
+
+- [[file:../src/data/mtcars-labels.dta][mtcars-labels.dta]]
+
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+fn = "mtcars-labels.dta"     # change the file path to where your saved the file
+df, labels = tp.read_data(fn=fn)
+#+END_SRC
+
+#+RESULTS[9e80bf44327485436e980e3c07fbf73e0d022ea3]:
+#+begin_src python
+Loading data 'mtcars-labels.dta'... done!
+#+end_src
+
+The data:
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df.head().print()
+#+END_SRC
+
+#+RESULTS[93757d38dd6fc57a670866bf3b1d1c10639db826]:
+#+begin_src python
+shape: (5, 12)
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│   mpg    cyl     disp       hp   drat     wt    qsec     vs    am   gear   carb   name              │
+│   f64    f64      f64      f64    f64    f64     f64    f64   i32    f64    f64   str               │
+╞═════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ 21.00   6.00   160.00   110.00   3.90   2.62   16.46   0.00     2   4.00   4.00   Mazda RX4         │
+│ 21.00   6.00   160.00   110.00   3.90   2.88   17.02   0.00     2   4.00   4.00   Mazda RX4 Wag     │
+│ 22.80   4.00   108.00    93.00   3.85   2.32   18.61   1.00     2   4.00   1.00   Datsun 710        │
+│ 21.40   6.00   258.00   110.00   3.08   3.21   19.44   1.00     1   3.00   1.00   Hornet 4 Drive    │
+│ 18.70   8.00   360.00   175.00   3.15   3.44   17.02   0.00     1   3.00   2.00   Hornet Sportabout │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+The labels
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+from pprint import pprint as print_dict # just to print dictionary nicely
+
+print("Variable labels:")
+print_dict(labels.variables)
+print("Variables values and their label:")
+print_dict(labels.values)
+#+END_SRC
+
+#+RESULTS[721407843c908793d5012b1521e02e0aac0a94ba]:
+#+begin_src python
+Variable labels:
+{'am': 'am',
+ 'carb': 'carb',
+ 'cyl': 'Number of cylinders',
+ 'disp': 'disp',
+ 'drat': 'drat',
+ 'gear': 'Number of forward gears',
+ 'hp': 'hp',
+ 'mpg': 'mpg',
+ 'name': 'name',
+ 'qsec': 'qsec',
+ 'vs': 'vs',
+ 'wt': 'wt'}
+Variables values and their label:
+{'am': {np.int32(1): 'Zero', np.int32(2): 'One'},
+ 'cyl': {np.int32(4): 'Four ', np.int32(6): 'Six ', np.int32(8): 'Eight '},
+ 'gear': {np.int32(3): 'Three forward gears',
+          np.int32(4): 'Four forward gears',
+          np.int32(5): 'Five forward gears'}}
+#+end_src
+
+To replace variable names with their labels, use:
+
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df_var_labelled = df.select(labels.variables)
+df_var_labelled.head().print()
+#+END_SRC
+
+#+RESULTS[9d3b3f73f937e7c4e32190d80c75f797d6e0d9f4]:
+#+begin_src python
+shape: (5, 12)
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│   mpg   Number of cylinders     disp       hp   drat     wt    qsec     vs    am   Number of forward gears   carb   name              │
+│   f64                   f64      f64      f64    f64    f64     f64    f64   i32                       f64    f64   str               │
+╞═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ 21.00                  6.00   160.00   110.00   3.90   2.62   16.46   0.00     2                      4.00   4.00   Mazda RX4         │
+│ 21.00                  6.00   160.00   110.00   3.90   2.88   17.02   0.00     2                      4.00   4.00   Mazda RX4 Wag     │
+│ 22.80                  4.00   108.00    93.00   3.85   2.32   18.61   1.00     2                      4.00   1.00   Datsun 710        │
+│ 21.40                  6.00   258.00   110.00   3.08   3.21   19.44   1.00     1                      3.00   1.00   Hornet 4 Drive    │
+│ 18.70                  8.00   360.00   175.00   3.15   3.44   17.02   0.00     1                      3.00   2.00   Hornet Sportabout │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+To replace values with their labels, use:
+
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df_with_value_labels = df.replace(labels.values)
+df_with_value_labels.head().print()
+#+END_SRC
+
+#+RESULTS[44cf2134bf59276f64c7994f89b01ccd4009a34f]:
+#+begin_src python
+shape: (5, 12)
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│   mpg   cyl        disp       hp   drat     wt    qsec     vs   am     gear                  carb   name              │
+│   f64   str         f64      f64    f64    f64     f64    f64   str    str                    f64   str               │
+╞═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ 21.00   Six      160.00   110.00   3.90   2.62   16.46   0.00   One    Four forward gears    4.00   Mazda RX4         │
+│ 21.00   Six      160.00   110.00   3.90   2.88   17.02   0.00   One    Four forward gears    4.00   Mazda RX4 Wag     │
+│ 22.80   Four     108.00    93.00   3.85   2.32   18.61   1.00   One    Four forward gears    1.00   Datsun 710        │
+│ 21.40   Six      258.00   110.00   3.08   3.21   19.44   1.00   Zero   Three forward gears   1.00   Hornet 4 Drive    │
+│ 18.70   Eight    360.00   175.00   3.15   3.44   17.02   0.00   Zero   Three forward gears   2.00   Hornet Sportabout │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+It is easy to replace labels for only some variables. Here is an example of using a variable label only for ~cyl~ and value labels only for ~gear~ and ~am~:
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+var_to_label = ['cyl']
+values_to_label = ['am', 'gear']
+
+var_to_label = {v:(l if v in var_to_label else v) for v, l in labels.variables.items()} 
+values_to_label = {v:l for v, l in labels.values.items() if v in values_to_label} 
+
+df_labelled = (df
+               .select(var_to_label)
+               .replace(values_to_label)
+               )
+df_labelled.head().print()
+#+END_SRC
+
+#+RESULTS[f25b7bbe752008165d484815f93fa2dfdf17b754]:
+#+begin_src python
+shape: (5, 12)
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│   mpg   Number of cylinders     disp       hp   drat     wt    qsec     vs   am     gear                  carb   name              │
+│   f64                   f64      f64      f64    f64    f64     f64    f64   str    str                    f64   str               │
+╞════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ 21.00                  6.00   160.00   110.00   3.90   2.62   16.46   0.00   One    Four forward gears    4.00   Mazda RX4         │
+│ 21.00                  6.00   160.00   110.00   3.90   2.88   17.02   0.00   One    Four forward gears    4.00   Mazda RX4 Wag     │
+│ 22.80                  4.00   108.00    93.00   3.85   2.32   18.61   1.00   One    Four forward gears    1.00   Datsun 710        │
+│ 21.40                  6.00   258.00   110.00   3.08   3.21   19.44   1.00   Zero   Three forward gears   1.00   Hornet 4 Drive    │
+│ 18.70                  8.00   360.00   175.00   3.15   3.44   17.02   0.00   Zero   Three forward gears   2.00   Hornet Sportabout │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+
+*** Files with Hierarchical Headers
+:PROPERTIES:
+:CUSTOM_ID: files-with-hierarchical-headings
+:END:
+
+Some files have a hierarchical or multiple level header, that is, a header spanning more than one row. Here is an example with a header organized hierarchically in 3 levels:
+
+#+Name:  example-3-headers
+[[./tables-and-figures/example-3-headers.png]]
+
+
+A file with this example can be downloaded here: [[file:../src/data/example-1-header.xlsx][example-3-header.xlsx]].
+
+
+The ~read_data()~ function can read these files into a tidy format and automatically add level information to the column names. The user just needs to inform the number of rows with the heading using the argument ~n_headers~. Here is the code:
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+
+fn = "./example-3-headers.xlsx" # change the file path to where your saved the file
+df = tp.read_data(fn=fn, n_headers=3)
+df.print()
+
+#+END_SRC
+
+#+RESULTS[d09d60057614732e7892b28cab66f51e58872154]:
+#+begin_src python
+Loading data 'example-3-headers.xlsx'... done!
+shape: (2, 7)
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  id   partisanship (code)   partisanship (value)   age (value)   age (group; value)   age (group; category)   gender │
+│ i64                   i64   str                            i64   str                  str                     str    │
+╞══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│   1                    10   Dem                             23   20-29                Adult 1                 Male   │
+│   2                    11   Rep                             32   30-39                Adult 2                 Female │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+
+If it is possible to change how the lower-level information is added to the main header using ~header_combine_rule~:
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df = tp.read_data(fn=fn, n_headers=3,
+                  header_combine_rule = lambda levels: '_'.join(levels))
+df.print()
+#+END_SRC
+
+#+RESULTS[e50cf3f2ef13fb1aa7c7f337ad329685b6997567]:
+#+begin_src python
+Loading data 'example-3-headers.xlsx'... done!
+shape: (2, 7)
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  id   partisanship_code   partisanship_value   age_value   age_group_value   age_group_category   gender │
+│ i64                 i64   str                        i64   str               str                  str    │
+╞══════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│   1                  10   Dem                         23   20-29             Adult 1              Male   │
+│   2                  11   Rep                         32   30-39             Adult 2              Female │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+*** Reading file from URL
+
+To lead data from a URL pointing to the data file, use:
+
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+fn = 'https://diogoferrari.com/tidypolars4sci/src/data/example.csv'
+df = tp.read_data(fn=fn)
+df.head().print()
+#+END_SRC
+
+#+RESULTS[e7048ed8a098fa53e398e18e25475ac24fce8ba1]:
+#+begin_src python
+Loading data 'example.csv'... done!
+shape: (3, 2)
+┌───────────┐
+│   a     b │
+│ i64   i64 │
+╞═══════════╡
+│   1     4 │
+│   2     5 │
+│   3     6 │
+└───────────┘
+#+end_src
+
+
+
+*** Reading from Google Sheets
+
+~read_data()~ uses [[https://docs.gspread.org/en/latest/][gspread]] to read from Google Sheets files. Users need to create API credentials with Google. Instructions are [[https://docs.gspread.org/en/latest/oauth2.html#for-end-users-using-oauth-client-id][here]].
+
+Once the credentials are created, the local JSON file saved with the credentials, and the Google Sheet is shared via a link, use:
+# 
+#+BEGIN_SRC python :exports code :results silent :tangle src-read.py :cache yes :noweb no :session *Python* :linenums 1 :eval never
+cred = <path-to-local-json-file-with-Google-API-credentials>
+url = <Share Spreadsheet link>
+
+df = tp.read_data(url=url, credentials=cred)
+
+#+END_SRC
+
+Note: Google Sheets with multi-line headers are supported. See [[#files-with-hierarchical-headings][here]].

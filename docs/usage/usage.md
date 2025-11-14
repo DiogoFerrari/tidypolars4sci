@@ -1,5 +1,3 @@
-# Basic usage
-
 tidypolars$^{4sci} $ methods are designed to work like tidyverse
 functions. This creates a dataframe:
 
@@ -67,27 +65,4 @@ shape: (3, 6)
 │   2     8   b            4         10       2 │
 │   1     7   a            2          8       1 │
 └───────────────────────────────────────────────┘
-```
-
-# Converting to/from pandas data frames
-
-If one needs to use a package that requires pandas or polars dataframes,
-you can convert from a tidypolars$^{4sci} $ `tibble` to either of those
-`DataFrame` formats.
-
-``` {.python exports="code" results="none" tangle="src-usage.py" cache="yes" noweb="no" session="*Python*"}
-# convert to pandas
-df = df.to_pandas()
-# or convert to polars
-df = df.to_polars()
-```
-
-To convert from a pandas or polars `DataFrame` to a
-tidypolars$^{4sci}$\'s `tibble`:
-
-``` {.python exports="code" results="none" tangle="src-usage.py" cache="yes" noweb="no" session="*Python*"}
-# convert from pandas
-df = tp.from_pandas(df)
-# or covert from polars
-df = tp.from_polars(df)
 ```

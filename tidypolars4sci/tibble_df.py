@@ -5,7 +5,9 @@ from .utils import (_as_list,
                     _col_exprs,
                     _kwargs_as_exprs,
                     _mutate_cols,
-                    _uses_by
+                    _uses_by,
+                    _filter_kwargs_for,
+                    _expand_to_full_path_or_url
                     )
 from .funs import map
 from .stringr import str_c, str_replace_all
@@ -13,19 +15,19 @@ from .stats import *
 from .reexports import *
 from .type_conversion import *
 from .helpers import everything, matches, DescCol, desc, across, where
-import copy
 from operator import not_
 import numpy as np
 import pandas as pd
 import polars.selectors as cs
-import re
+import re, copy, os
 from itertools import chain
 import warnings
 warnings.filterwarnings("ignore", category=pl.exceptions.MapWithoutReturnDtypeWarning)
 
 __all__ = [
     "tibble", "TibbleGroupBy",
-    "from_pandas", "from_polars"
+    "from_pandas", "from_polars",
+    "__get_accepted_output_formats__"
     ]
 
 class tibble(pl.DataFrame):
@@ -82,7 +84,8 @@ class tibble(pl.DataFrame):
             'replace_null', 'select',
             'separate', 'set_names',
             'slice', 'slice_head', 'slice_tail', 'summarize', 'tail',
-            'to_pandas', 'to_polars', 'unnest', 'write_csv', 'write_parquet'
+            'save_data',
+            'to_pandas', 'to_polars', 'unnest'
         ]
         return _tidypolars_methods
     
@@ -1177,58 +1180,6 @@ class tibble(pl.DataFrame):
         """Alias for `.slice_tail()`"""
         return self.slice_tail(n, by = by)
 
-    def to_dict(self, *, as_series = True):
-        """
-        Aggregate data with summary statistics
-
-        Parameters
-        ----------
-        as_series : bool
-            If True - returns the dict values as Series
-            If False - returns the dict values as lists
-
-        Examples
-        --------
-        >>> df.to_dict()
-        >>> df.to_dict(as_series = False)
-        """
-        return super().to_dict(as_series = as_series)
-
-    def to_pandas(self):
-        """
-        Convert to a pandas DataFrame
-
-        Examples
-        --------
-        >>> df.to_pandas()
-        """
-        # keep order of factors (pl.Enum)
-        enum_columns = [col for col in self.names if self.pull(col).dtype == pl.Enum]
-        res = self.to_polars().to_pandas()
-        if enum_columns :
-            for col in enum_columns:
-                # Get unique categories in order of appearance
-                categories_in_order = self.pull(col).cat.get_categories().to_list()
-                # Convert the column to Categorical
-                res[col] = pd.Categorical(
-                    res[col],
-                    categories=categories_in_order,
-                    ordered=True
-                )
-        return res
-
-    def to_polars(self):
-        """
-        Convert to a polars DataFrame
-
-        Examples
-        --------
-        >>> df.to_polars()
-        """
-        self = copy.copy(self)
-        self.__class__ = pl.DataFrame
-        return self
-
     def unite(self, col = "_united", unite_cols = [], sep = "_", remove = True):
         """
         Unite multiple columns by pasting strings together
@@ -1259,21 +1210,6 @@ class tibble(pl.DataFrame):
         if remove == True:
             out = out.drop(unite_cols)
         return out
-    
-    def write_csv(self,
-                  file = None,
-                  has_headers = True,
-                  sep = ','):
-        """Write a data frame to a csv"""
-        return super().write_csv(file, include_header = has_headers, separator = sep)
-
-    def write_parquet(self,
-                      file = str,
-                      compression = 'snappy',
-                      use_pyarrow = False,
-                      **kwargs):
-        """Write a data frame to a parquet"""
-        return super().write_parquet(file, compression = compression, use_pyarrow = use_pyarrow, **kwargs)
 
     def group_by(self, group, *args, **kwargs):
         """
@@ -1576,6 +1512,37 @@ class tibble(pl.DataFrame):
         print(f"[Rows: {self.nrow}; Columns {self.ncol}]")
         return None
 
+    def colnames(self, regex='.', type=None, include_factor=True):
+        """
+        Return the names of numeric columns in `self` that match 'regex'
+        type: (str)
+            
+        include_factor: (boolean)
+            When type=string, include or not factors
+        
+        """
+        cols = self.select(matches(regex)).names
+
+        if type:
+            if type=='numeric':
+                selector = pl.selectors.numeric()
+            if type=='integer':
+                selector = pl.selectors.integer()
+            if type=='string':
+                if include_factor:
+                    selector = pl.selectors.string() | pl.selectors.categorical() | pl.selectors.enum()
+                else:
+                    selector = pl.selectors.string()
+            if type=='factor':
+                selector = pl.selectors.categorical() | pl.selectors.enum()
+            if type=='date':
+                selector = pl.selectors.date()
+            cols_type = self.to_polars().select(selector).columns
+
+            cols = [c for c in cols_type  if c in cols]
+
+        return cols
+
     # Not tidy functions, but useful from pandas/polars 
     # -------------------------------------------------
     def replace(self, rep, regex=False):
@@ -1648,7 +1615,6 @@ class tibble(pl.DataFrame):
     def iterrows(self):
         yield from self.to_polars().iter_rows(named=True)
         
-
     # Statistics 
     # ----------
     def descriptive_statistics(self, vars=None, groups=None,
@@ -2043,9 +2009,151 @@ class tibble(pl.DataFrame):
                 tab = pl.concat([non_na_rows, na_row], how="vertical")
         return tab.to_pandas()
 
-    # Reporting 
-    # ---------
+    # Exporting table 
+    # ---------------
+    def save_data(self, fn, copies, sep, kws_latex=None, *args, **kws):
+        """
+        Save data based on the filename.
+
+        Parameters
+        ----------
+        fn : callable, str
+            Path and filename
+
+        copies : list of str
+            List with strings with the file extensions. Copies of the
+            file are saved based on the extension, using the same
+            filename and path used in "``fn``".
+
+        sep: str (optional)
+            Set the column separator to export to text-like files (.csv,
+            .tsv, .txt, etc.)
+
+        kws_latex : dict
+            Arguments of to_latex(). See tibble.to_latex()
+         
+        Notes
+        -----
+        *args and **kws are arguments used in underlying method used
+        to save the file, which is based on the file extension.
+
+        * .tex => tidypolars4sci.tibble.to_latex
+
+        * .csv => polars.write_csv   (uses sep=';' as default)
+        * .tsv => polars.write_csv   (uses sep='\t' as default)
+        * .dat => polars.write_csv   (uses sep=' ' as default)
+        * .txt => polars.write_csv   (uses sep=' ' as default)
+
+        * .xls  => polars.write_excel
+        * .xlsx => polars.write_excel
+
+        * .dta => pandas.DataFrame.to_stata
+
+        * .parquet => polars.write_parquet
+
+
+        Use silently=True to save quietly (Default False).
+
+
+        """
+        assert fn, "Filename (fn) must be provided."
+
+        silently = kws.get("silently", False)
+        fn = _expand_to_full_path_or_url(fn)
+        fn_base, ext = os.path.splitext(fn)
+        folder = os.path.dirname(fn)
+
+        assert ext, "File extension (.csv, .tex, .xlsx, etc.) must be provided."
+
+
+        copies = kws.get("copies", [])
+        copies = copies if isinstance(copies, list) else [copies]
+
+        ext = ext.replace('.', '')
+        copies = [c.replace('.', '') for c in copies]
+        ext_to_save = set([ext] + copies)
+        kws['fn'] = fn_base
+
+        AVAILABE_FORMATS = __get_accepted_output_formats__(_print=False)
+
+        for ext in ext_to_save:
+            kws['ext'] = ext
+            if ext in AVAILABE_FORMATS['csv-like']:
+                self.to_csv(*args, **kws)
+
+            if ext in AVAILABE_FORMATS['excel-like']:
+                self.to_excel(*args, **kws)
+
+            if ext in AVAILABE_FORMATS['Stata files']:
+                self.to_dta(*args, **kws)
+
+            if ext in AVAILABE_FORMATS['parquet']:
+                self.to_parquet(*args, **kws)
+
+            if ext in AVAILABE_FORMATS['latex']:
+                kws_latex = kws_latex or {}
+                fn = f"{fn_base}.{ext}"
+
+                print(f"Saving {os.path.basename(fn)}...", end='') if not silently else None
+                self.to_latex(fn=fn, *args, **kws_latex)
+                print('done!')  if not silently else None
+
+
+        home_dir = os.path.expanduser("~")
+        print(f"Save at: {"~"+folder.replace(home_dir, '')}") if not silently else None
+        
+    def to_excel(self, *args, **kws):
+        """
+        Save tibble to excel.
+
+        Details
+        -------
+        See polars `write_excel()` for details.
+        
+        Returns
+        -------
+        None
+        """
+        writer = self.to_polars().write_excel
+        kws_reader = _filter_kwargs_for(writer, kws)
+
+        silently = kws.get("silently", False)
+        ext = kws['ext']
+        fn = f"{kws['fn']}.{ext}"
+        fn_base = os.path.basename(fn)
+
+        print(f'Saving {fn_base}...', end='') if not silently else None
+        kws_reader['workbook'] = fn
+        writer(*args, **kws_reader)
+        print('done!')  if not silently else None
+
+    def to_csv(self, *args, **kws):
+        """
+        Save tibble to csv.
+
+        Details
+        -------
+        See polars `write_csv()` for details.
+        
+        Returns
+        -------
+        None
+        """
+        writer = self.to_polars().write_csv
+        kws_reader = _filter_kwargs_for(writer, kws)
+
+        silently = kws.get("silently", False)
+        ext = kws['ext']
+        fn = f"{kws['fn']}.{ext}"
+        fn_base = os.path.basename(fn)
+
+        print(f'Saving {fn_base}...', end='') if not silently else None
+        kws_reader['file'] = fn
+        writer(*args, **kws_reader)
+        print('done!')  if not silently else None
+
     def to_latex(self,
+                 fn = None,
                  header = None,
                  digits = 4,
                  caption = None,
@@ -2072,22 +2180,27 @@ class tibble(pl.DataFrame):
 
         Parameters
         ----------
+        fn : str
+            Path with filename
+
         header : list of tuples, optional
             The column headers for the LaTeX table. Each tuple corresponds to a column.
             Ex: This will create upper level header with grouped columns
+
                 [("", "col 1"),
                  ("Group A", "col 2"),
                  ("Group A", "col 3"),
                  ("Group B", "col 4")
                  ("Group B", "col 5"),
-                  ]
-                This will create two upper level header with grouped columns
+                ]
+            This will create two upper level header with grouped columns
+
                 [("Group 1", ""       , "col 1"),
                  ("Group 1", "Group A", "col 2"),
                  ("Group 1", "Group A", "col 3"),
                  (""       , "Group B", "col 4")
                  (""       , "Group B", "col 5"),
-                  ]
+                 ]
         digits : int, default=4
             Number of decimal places to round the numerical values in the table.
 
@@ -2257,8 +2370,60 @@ class tibble(pl.DataFrame):
         if parse_linebreaks:
             tabl = self.__to_latex_breaklines__(tabl, longtable)
 
+        if fn:
+            with open(fn, 'w') as f:
+                f.write(tabl)
+            tabl = None
+
         return tabl
 
+    def to_dta(self, *args, **kws):
+        """
+        Save tibble to dta.
+
+        Details
+        -------
+        See polars `write_dta()` for details.
+        
+        Returns
+        -------
+        None
+        """
+        writer = self.to_pandas().to_stata
+        kws_reader = _filter_kwargs_for(writer, kws)
+
+        silently = kws.get("silently", False)
+        ext = kws['ext']
+        fn = f"{kws['fn']}.{ext}"
+        fn_base = os.path.basename(fn)
+
+        print(f'Saving {fn_base}...', end='') if not silently else None
+        kws_reader['path'] = fn
+        writer(*args, **kws_reader)
+        print('done!')  if not silently else None
+
+    def to_parquet(self,
+                      file = str,
+                      compression = 'snappy',
+                      use_pyarrow = False,
+                      silently=False, 
+                      *args,
+                      **kws):
+        """Write a data frame to a parquet"""
+        writer = super().write_parquet
+        kws_reader = _filter_kwargs_for(writer, kws)
+
+        silently = kws.get("silently", False)
+        ext = kws['ext']
+        fn = f"{kws['fn']}.{ext}"
+        fn_base = os.path.basename(fn)
+
+        print(f'Saving {fn_base}...', end='') if not silently else None
+        writer(file=fn, compression = compression, use_pyarrow = use_pyarrow, *args, **kws_reader)
+        print('done!')  if not silently else None
+
+    # Reporting (to_latex)
+    # ---------
     def __to_latex_process_header_line_for_cmid__(self, line: str) -> str:
         # Given a header line (without the trailing newline),
         # parse for multicolumn commands and generate a line of cmidrule(s)
@@ -2549,67 +2714,60 @@ class tibble(pl.DataFrame):
         )
         return new_table_str
 
-    # Exporting table 
-    # ---------------
-    def to_excel(self, *args, **kws):
+    # convert 
+    # -------
+    def to_dict(self, *, as_series = True):
         """
-        Save table to excel.
+        Aggregate data with summary statistics
 
-        Details
-        -------
-        See polars `write_excel()` for details.
-        
-        Returns
-        -------
-        None
+        Parameters
+        ----------
+        as_series : bool
+            If True - returns the dict values as Series
+            If False - returns the dict values as lists
+
+        Examples
+        --------
+        >>> df.to_dict()
+        >>> df.to_dict(as_series = False)
         """
+        return super().to_dict(as_series = as_series)
 
-        self.to_polars().write_excel(*args, **kws)
-
-    def to_csv(self, *args, **kws):
+    def to_pandas(self):
         """
-        Save table to csv.
+        Convert to a pandas DataFrame
 
-        Details
-        -------
-        See polars `write_csv()` for details.
-        
-        Returns
-        -------
-        None
+        Examples
+        --------
+        >>> df.to_pandas()
         """
-        self.to_polars().write_csv(*args, **kws)
+        # keep order of factors (pl.Enum)
+        enum_columns = [col for col in self.names if self.pull(col).dtype == pl.Enum]
+        res = self.to_polars().to_pandas()
+        if enum_columns :
+            for col in enum_columns:
+                # Get unique categories in order of appearance
+                categories_in_order = self.pull(col).cat.get_categories().to_list()
+                # Convert the column to Categorical
+                res[col] = pd.Categorical(
+                    res[col],
+                    categories=categories_in_order,
+                    ordered=True
+                )
+        return res
 
-    def colnames(self, regex='.', type=None, include_factor=True):
+    def to_polars(self):
         """
-        Return the names of numeric columns in `self` that match 'regex'
-        type: (str)
-            
-        include_factor: (boolean)
-            When type=string, include or not factors
-        
+        Convert to a polars DataFrame
+
+        Examples
+        --------
+        >>> df.to_polars()
         """
-        cols = self.select(matches(regex)).names
+        self = copy.copy(self)
+        self.__class__ = pl.DataFrame
+        return self
 
-        if type:
-            if type=='numeric':
-                selector = pl.selectors.numeric()
-            if type=='integer':
-                selector = pl.selectors.integer()
-            if type=='string':
-                if include_factor:
-                    selector = pl.selectors.string() | pl.selectors.categorical() | pl.selectors.enum()
-                else:
-                    selector = pl.selectors.string()
-            if type=='factor':
-                selector = pl.selectors.categorical() | pl.selectors.enum()
-            if type=='date':
-                selector = pl.selectors.date()
-            cols_type = self.to_polars().select(selector).columns
-
-            cols = [c for c in cols_type  if c in cols]
-
-        return cols
 
 class TibbleGroupBy(pl.dataframe.group_by.GroupBy):
 
@@ -2771,3 +2929,22 @@ _polars_methods = [
     'with_column_renamed',
     'with_columns'
     ]
+
+
+def __get_accepted_output_formats__(_print=False):
+    ACCEPTED_FILES = {
+        'csv-like'                : ['csv', 'CSV', 'tsv','TSV', 'dat', 'DAT', 'txt', 'TXT'],
+        'excel-like'              : ['xls', 'xlsx', 'xlt', 'XLT', 'xltx', 'XLTX',
+                                     'ods', 'ODS', 'XLS', 'XLSX'],
+        'latex'                   : ['tex', 'TEX'],
+        'Stata files'             : ['dta', 'DTA'],
+        'parquet'                 : ['parquet', 'PARQUET']
+    }
+    if _print:
+        res = None
+        for file_types, extensions in ACCEPTED_FILES.items():
+            exts = sorted(set([s.lower().replace(".", '') for s in extensions]))
+            print(f"- {file_types}: {', '.join(exts)}")
+    else:
+        res = ACCEPTED_FILES
+    return res

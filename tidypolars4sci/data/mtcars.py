@@ -42,4 +42,3 @@ def __load_mtcars__():
     """
     return tibble(mtcars)
 
-

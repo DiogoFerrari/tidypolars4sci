@@ -24,7 +24,8 @@ classifiers = [
 dependencies = [
 	     "numpy",
 	     "pandas",
-	     "polars==1.30",
+	     # "polars==1.30",
+	     "polars",
 	     "pyarrow",
 	     "pyreadr",
 	     "pyreadstat",

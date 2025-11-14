@@ -1,0 +1,20 @@
+Some modules require pandas or polars dataframes as input. To convert
+from a tidypolars$^{4sci} $ tibble to a `pandas` or `polars` dataframe,
+use:
+
+``` {.python exports="code" results="none" tangle="src-usage.py" cache="yes" noweb="no" session="*Python*"}
+# convert to pandas
+df = df.to_pandas()
+# convert to polars
+df = df.to_polars()
+```
+
+To convert from a `pandas` or `polars` `DataFrame` to a
+tidypolars$^{4sci}$\'s `tibble`, use:
+
+``` {.python exports="code" results="none" tangle="src-usage.py" cache="yes" noweb="no" session="*Python*"}
+# convert from pandas
+df = tp.from_pandas(df)
+# or covert from polars
+df = tp.from_polars(df)
+```

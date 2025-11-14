@@ -1,0 +1,164 @@
+## Write to file
+
+To write the tibble to a file, use `save_data()`. The type to be used is
+inferred from the filename extension. Relative paths are acceptable in
+the filename string `fn`, which receives the filename and its path.
+These are the file types available to save the `tibble` to file:
+
+``` org
+- csv-like: csv, dat, tsv, txt
+- excel-like: ods, xls, xlsx, xlt, xltx
+- latex: tex
+- Stata files: dta
+- parquet: parquet
+```
+
+## Examples
+
+### Save to .csv
+
+Here is an example of how to save a `tibble` to `.csv`. We can use the
+mtcars data provided with tidypolars$^{4sci} $ to illustrate the
+procedure:
+
+``` {.python exports="both" results="output code" tangle="src-write.py" cache="yes" noweb="no" session="*Python*" linenums="1" eval="always"}
+import tidypolars4sci as tp
+from tidypolars4sci.data import mtcars as df
+
+df.head().print()
+```
+
+``` python
+shape: (5, 12)
+┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ name                  mpg   cyl     disp    hp   drat     wt    qsec    vs    am   gear   carb │
+│ str                   f64   i64      f64   i64    f64    f64     f64   i64   i64    i64    i64 │
+╞════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Mazda RX4           21.00     6   160.00   110   3.90   2.62   16.46     0     1      4      4 │
+│ Mazda RX4 Wag       21.00     6   160.00   110   3.90   2.88   17.02     0     1      4      4 │
+│ Datsun 710          22.80     4   108.00    93   3.85   2.32   18.61     1     1      4      1 │
+│ Hornet 4 Drive      21.40     6   258.00   110   3.08   3.21   19.44     1     0      3      1 │
+│ Hornet Sportabout   18.70     8   360.00   175   3.15   3.44   17.02     0     0      3      2 │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+To save that `tibble` to a `csv` file use:
+
+``` {.python exports="both" results="output code" tangle="src-write.py" cache="yes" noweb="no" session="*Python*" linenums="1" eval="always"}
+# save data to csv in the folder Documents
+df.save_data(fn = '~/Documents/mtcars-data.csv')
+
+# Relative paths are accepted: save data to csv in the current working folder
+# df.save_data(fn = './mtcars-data.csv')
+```
+
+``` python
+Saving mtcars-data.csv...done!
+Save at: ~/Documents
+```
+
+### Saving copies
+
+It is possible to save copies in other formats without calling the
+function multiple times using the argument `copies`. For instance, to
+save a `.csv` file, a copy in `.xlsx`, and another in `.dta`, use:
+
+``` {.python exports="both" results="output code" tangle="src-write.py" cache="yes" noweb="no" session="*Python*" linenums="1" eval="always"}
+import tidypolars4sci as tp
+from tidypolars4sci.data import mtcars as df
+
+# save data to csv
+df.save_data(fn = '~/Documents/mtcars-data.csv', copies = ["xlsx", ".dta"])
+```
+
+``` python
+Saving mtcars-data.dta...done!
+Saving mtcars-data.csv...done!
+Saving mtcars-data.xlsx...done!
+Save at: ~/Documents
+```
+
+### Saving to LaTeX
+
+tidypolars$^{4sci} $ has a function `to_latex()` that exports a `tibble`
+to LaTeX. Check documentation
+[here](../../api/#tidypolars4sci.tibble_df.tibble.to_latex).
+
+It is possible to export directly from `save_data` using either as a
+copy, using the argument `copies` (see [Saving copes](#saving-copies))
+or using a filename with `.tex` extension.
+
+1.  Using a filename with `.tex` extension:
+
+``` {.python exports="both" results="output code" tangle="src-write.py" cache="yes" noweb="no" session="*Python*" linenums="1" eval="always"}
+from tidypolars4sci.data import mtcars as df
+
+df.save_data(fn='~/Documents/table.tex')
+```
+
+``` python
+Saving table.tex...done!
+Save at: ~/Documents
+```
+
+1.  Using the `copies` argument:
+
+``` {.python exports="both" results="output code" tangle="src-write.py" cache="yes" noweb="no" session="*Python*" linenums="1" eval="always"}
+from tidypolars4sci.data import mtcars as df
+
+df.save_data(fn='~/Documents/table.csv', copies = ['tex'])
+```
+
+``` python
+Saving table.tex...done!
+Saving table.csv...done!
+Save at: ~/Documents
+```
+
+The latex table will look like this (for customization options, see
+[here](../../api/#tidypolars4sci.tibble_df.tibble.to_latex)):
+
+``` org
+\begin{table}[!htb]
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}{llllllllllll}
+\toprule
+name  &  mpg  &  cyl  &  disp  &  hp  &  drat  &  wt  &  qsec  &  vs  &  am  &  gear  &  carb \\
+\midrule
+Mazda RX4  &  21.0000  &  6  &  160.0000  &  110  &  3.9000  &  2.6200  &  16.4600  &  0  &  1  &  4  &  4 \\
+Mazda RX4 Wag  &  21.0000  &  6  &  160.0000  &  110  &  3.9000  &  2.8750  &  17.0200  &  0  &  1  &  4  &  4 \\
+Datsun 710  &  22.8000  &  4  &  108.0000  &  93  &  3.8500  &  2.3200  &  18.6100  &  1  &  1  &  4  &  1 \\
+Hornet 4 Drive  &  21.4000  &  6  &  258.0000  &  110  &  3.0800  &  3.2150  &  19.4400  &  1  &  0  &  3  &  1 \\
+Hornet Sportabout  &  18.7000  &  8  &  360.0000  &  175  &  3.1500  &  3.4400  &  17.0200  &  0  &  0  &  3  &  2 \\
+Valiant  &  18.1000  &  6  &  225.0000  &  105  &  2.7600  &  3.4600  &  20.2200  &  1  &  0  &  3  &  1 \\
+Duster 360  &  14.3000  &  8  &  360.0000  &  245  &  3.2100  &  3.5700  &  15.8400  &  0  &  0  &  3  &  4 \\
+Merc 240D  &  24.4000  &  4  &  146.7000  &  62  &  3.6900  &  3.1900  &  20.0000  &  1  &  0  &  4  &  2 \\
+Merc 230  &  22.8000  &  4  &  140.8000  &  95  &  3.9200  &  3.1500  &  22.9000  &  1  &  0  &  4  &  2 \\
+Merc 280  &  19.2000  &  6  &  167.6000  &  123  &  3.9200  &  3.4400  &  18.3000  &  1  &  0  &  4  &  4 \\
+Merc 280C  &  17.8000  &  6  &  167.6000  &  123  &  3.9200  &  3.4400  &  18.9000  &  1  &  0  &  4  &  4 \\
+Merc 450SE  &  16.4000  &  8  &  275.8000  &  180  &  3.0700  &  4.0700  &  17.4000  &  0  &  0  &  3  &  3 \\
+Merc 450SL  &  17.3000  &  8  &  275.8000  &  180  &  3.0700  &  3.7300  &  17.6000  &  0  &  0  &  3  &  3 \\
+Merc 450SLC  &  15.2000  &  8  &  275.8000  &  180  &  3.0700  &  3.7800  &  18.0000  &  0  &  0  &  3  &  3 \\
+Cadillac Fleetwood  &  10.4000  &  8  &  472.0000  &  205  &  2.9300  &  5.2500  &  17.9800  &  0  &  0  &  3  &  4 \\
+Lincoln Continental  &  10.4000  &  8  &  460.0000  &  215  &  3.0000  &  5.4240  &  17.8200  &  0  &  0  &  3  &  4 \\
+Chrysler Imperial  &  14.7000  &  8  &  440.0000  &  230  &  3.2300  &  5.3450  &  17.4200  &  0  &  0  &  3  &  4 \\
+Fiat 128  &  32.4000  &  4  &  78.7000  &  66  &  4.0800  &  2.2000  &  19.4700  &  1  &  1  &  4  &  1 \\
+Honda Civic  &  30.4000  &  4  &  75.7000  &  52  &  4.9300  &  1.6150  &  18.5200  &  1  &  1  &  4  &  2 \\
+Toyota Corolla  &  33.9000  &  4  &  71.1000  &  65  &  4.2200  &  1.8350  &  19.9000  &  1  &  1  &  4  &  1 \\
+Toyota Corona  &  21.5000  &  4  &  120.1000  &  97  &  3.7000  &  2.4650  &  20.0100  &  1  &  0  &  3  &  1 \\
+Dodge Challenger  &  15.5000  &  8  &  318.0000  &  150  &  2.7600  &  3.5200  &  16.8700  &  0  &  0  &  3  &  2 \\
+AMC Javelin  &  15.2000  &  8  &  304.0000  &  150  &  3.1500  &  3.4350  &  17.3000  &  0  &  0  &  3  &  2 \\
+Camaro Z28  &  13.3000  &  8  &  350.0000  &  245  &  3.7300  &  3.8400  &  15.4100  &  0  &  0  &  3  &  4 \\
+Pontiac Firebird  &  19.2000  &  8  &  400.0000  &  175  &  3.0800  &  3.8450  &  17.0500  &  0  &  0  &  3  &  2 \\
+Fiat X1-9  &  27.3000  &  4  &  79.0000  &  66  &  4.0800  &  1.9350  &  18.9000  &  1  &  1  &  4  &  1 \\
+Porsche 914-2  &  26.0000  &  4  &  120.3000  &  91  &  4.4300  &  2.1400  &  16.7000  &  0  &  1  &  5  &  2 \\
+Lotus Europa  &  30.4000  &  4  &  95.1000  &  113  &  3.7700  &  1.5130  &  16.9000  &  1  &  1  &  5  &  2 \\
+Ford Pantera L  &  15.8000  &  8  &  351.0000  &  264  &  4.2200  &  3.1700  &  14.5000  &  0  &  1  &  5  &  4 \\
+Ferrari Dino  &  19.7000  &  6  &  145.0000  &  175  &  3.6200  &  2.7700  &  15.5000  &  0  &  1  &  5  &  6 \\
+Maserati Bora  &  15.0000  &  8  &  301.0000  &  335  &  3.5400  &  3.5700  &  14.6000  &  0  &  1  &  5  &  8 \\
+Volvo 142E  &  21.4000  &  4  &  121.0000  &  109  &  4.1100  &  2.7800  &  18.6000  &  1  &  1  &  4  &  2 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+```
