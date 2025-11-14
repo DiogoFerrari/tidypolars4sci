@@ -15,14 +15,23 @@ from .tibble_df import *
 from .type_conversion import *
 from .utils import *
 
-__all__ = (
-    io.__all__ +
-    tibble_df.__all__ +
-    reexports.__all__  +
-    helpers.__all__  +
-    stats.__all__  +
-    type_conversion.__all__  +
-    funs.__all__  
-)
+# __all__ = (
+#     io.__all__ +
+#     tibble_df.__all__ +
+#     reexports.__all__  +
+#     helpers.__all__  +
+#     stats.__all__  +
+#     type_conversion.__all__  +
+#     funs.__all__  
+# )
+
+API_labels = {
+    "tibble_df":'Tibble',
+    'funs' : "Special Functions",
+    'helpers' : "Helpers",
+    'io' : "Read Files",
+    'stats': "Statistics",
+    'type_conversion':'Type Conversion'
+}
 
 

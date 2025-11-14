@@ -2011,7 +2011,7 @@ class tibble(pl.DataFrame):
 
     # Exporting table 
     # ---------------
-    def save_data(self, fn, copies, sep, kws_latex=None, *args, **kws):
+    def save_data(self, fn, copies=None, sep=';', kws_latex=None, *args, **kws):
         """
         Save data based on the filename.
 
@@ -2066,7 +2066,7 @@ class tibble(pl.DataFrame):
         assert ext, "File extension (.csv, .tex, .xlsx, etc.) must be provided."
 
 
-        copies = kws.get("copies", [])
+        copies = copies or kws.get("copies", [])
         copies = copies if isinstance(copies, list) else [copies]
 
         ext = ext.replace('.', '')

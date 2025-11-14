@@ -49,25 +49,25 @@ _SAFE_READRDS = R(
 )
 
 def _is_null(x: Any) -> bool:
-    """Return True if x is an R NULL or Python None."""
+    # """Return True if x is an R NULL or Python None."""
     return x is None or isinstance(x, NULLType)
 
 def _load_r_dataframe(path: Path, obj_name: Optional[str] = None) -> ro.vectors.DataFrame:
-    """
-    Load an R data.frame from .rds or .RData.
+    # """
+    # Load an R data.frame from .rds or .RData.
 
-    Parameters
-    ----------
-    path:
-        Path to .rds or .RData file.
-    obj_name:
-        If loading from .RData, optional name of the object to pick.
-        If None, the first data.frame in the file is used.
+    # Parameters
+    # ----------
+    # path:
+    #     Path to .rds or .RData file.
+    # obj_name:
+    #     If loading from .RData, optional name of the object to pick.
+    #     If None, the first data.frame in the file is used.
 
-    Returns
-    -------
-    rpy2.robjects.vectors.DataFrame
-    """
+    # Returns
+    # -------
+    # rpy2.robjects.vectors.DataFrame
+    # """
     file_type = _detect_file_type(path)
 
     # --- First attempt: treat .rds as a real RDS file (without console error) ---
@@ -141,17 +141,17 @@ _COERCE_CHAR_TO_FACTOR = R(
 )
 
 def _r_label_extractor() -> ro.functions.SignatureTranslatedFunction:
-    """
-    Build (once) the small R function that extracts variable- and value-labels.
+    # """
+    # Build (once) the small R function that extracts variable- and value-labels.
 
-    It returns a list with:
+    # It returns a list with:
 
-      $var_labels   : named list of variable labels (or NULL)
-      $value_labels : named list; each element is either
-                      - NULL if no value labels, or
-                      - named character vector with names = codes, values = labels
-                        (code -> label mapping)
-    """
+    #   $var_labels   : named list of variable labels (or NULL)
+    #   $value_labels : named list; each element is either
+    #                   - NULL if no value labels, or
+    #                   - named character vector with names = codes, values = labels
+    #                     (code -> label mapping)
+    # """
     return R(
         """
         function(d) {
@@ -196,11 +196,11 @@ def _r_label_extractor() -> ro.functions.SignatureTranslatedFunction:
 _LABEL_FUN = _r_label_extractor()
 
 def _extract_labels(r_df: ro.vectors.DataFrame) -> DATA_LABELS:
-    """
-    Extract variable and value labels from an R data.frame and return DATA_LABELS.
+    # """
+    # Extract variable and value labels from an R data.frame and return DATA_LABELS.
 
-    Only variables that actually have labels are included in the dicts.
-    """
+    # Only variables that actually have labels are included in the dicts.
+    # """
     labels_r = _LABEL_FUN(r_df)
 
     # R objects:
@@ -265,25 +265,25 @@ def load_r(
     path: str,
     obj_name: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, DATA_LABELS]:
-    """
-    Load an R dataset (.rds or .RData) and extract labels.
+    # """
+    # Load an R dataset (.rds or .RData) and extract labels.
 
-    Parameters
-    ----------
-    path:
-        Path to the R file (.rds or .RData/.rda).
-    obj_name:
-        If reading from .RData, optional name of the object to load.
-        If None, the first R data.frame in the file is used.
+    # Parameters
+    # ----------
+    # path:
+    #     Path to the R file (.rds or .RData/.rda).
+    # obj_name:
+    #     If reading from .RData, optional name of the object to load.
+    #     If None, the first R data.frame in the file is used.
 
-    Returns
-    -------
-    (data, labels)
-        data   : pandas.DataFrame with the R data.
-        labels : DATA_LABELS instance with:
-                 - labels.variables: only vars with variable labels
-                 - labels.values   : only vars with value labels
-    """
+    # Returns
+    # -------
+    # (data, labels)
+    #     data   : pandas.DataFrame with the R data.
+    #     labels : DATA_LABELS instance with:
+    #              - labels.variables: only vars with variable labels
+    #              - labels.values   : only vars with value labels
+    # """
     path_obj = Path(path)
 
     r_df = _load_r_dataframe(path_obj, obj_name=obj_name)

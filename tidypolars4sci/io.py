@@ -63,7 +63,7 @@ class read_data():
 
     Parameters
     ----------
-    fn  : str
+    fn : str
         Full path to file, including filename. The type of file
         is inferred from the file extension. Hierarchical headers
         are accepted (see Notes).
@@ -76,7 +76,7 @@ class read_data():
         Path to the .json file with Google API credentials
         to access the spreadsheet (see Notes).
 
-    url  : str
+    url : str
         Google spreadsheet URL
 
     sheet_name : str
@@ -87,7 +87,7 @@ class read_data():
         Used with .sav files.
 
     sep : str (Default ";")
-       Specify the column separator for .csv files
+        Specify the column separator for .csv files
 
     big_data : bool
         If True, uses dask to load the data. Default: False
@@ -152,14 +152,15 @@ class read_data():
 
     Some data contains a hierarchical header, i.e., a multi-line header.
     Here is an example with 2 levels:
-    |----------------------------------------|
-    |     Party     |      Age      | Gender |
-    |---------------|---------------|--------|
-    | Code | Value  | value | group |        |
-    |------|--------|-------|-------|--------|
-    |    1 | Dem    | 23    | 20-29 |  M     |
-    |    0 | Rep    | 33    | 30-39 |  F     |
-    |----------------------------------------|
+
+        |----------------------------------------|
+        |     Party     |      Age      | Gender |
+        |---------------|---------------|--------|
+        | Code | Value  | value | group |        |
+        |------|--------|-------|-------|--------|
+        |    1 | Dem    | 23    | 20-29 |  M     |
+        |    0 | Rep    | 33    | 30-39 |  F     |
+        |----------------------------------------|
 
     When that is the case, the argument "``n_headers``" can be
     used to specify the number of header levels, or lines containing
@@ -172,12 +173,14 @@ class read_data():
       * In the last level, None or multi_col_sentinel is treated as
         "missing label" and is simply ignored for that level.
     The example above becomes:
-    |--------------------------------------------------------------------|
-    | Party (code)  | Party (value) | Age (value) | Age (group) | Gender |
-    |---------------|---------------|-------------|-------------|--------|
-    |    1          | Dem           | 23          | 20-29       |  M     |
-    |    0          | Rep           | 33          | 30-39       |  F     |
-    |--------------------------------------------------------------------|
+
+        |--------------------------------------------------------------------|
+        | Party (code)  | Party (value) | Age (value) | Age (group) | Gender |
+        |---------------|---------------|-------------|-------------|--------|
+        |    1          | Dem           | 23          | 20-29       |  M     |
+        |    0          | Rep           | 33          | 30-39       |  F     |
+        |--------------------------------------------------------------------|
+
     See "``header_combine_rule``" and "``combine_parenthesis_sep``"
     for more settings
 

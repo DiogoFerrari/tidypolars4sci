@@ -229,11 +229,11 @@ def map(cols, _fun):
     Parameters
     ----------
     cols : list of str
-       A list with the name of the columns in the data to apply function
+        A list with the name of the columns in the data to apply function
 
-    _ fun : a function
-       The function to apply to the columns. The function is applied
-       to each row separately
+    _fun : a function
+        The function to apply to the columns. The function is applied
+        to each row separately
     
 
     """

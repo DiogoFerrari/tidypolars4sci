@@ -128,10 +128,10 @@ def _filter_kwargs_for(func, kwargs):
     return {k: v for k, v in kwargs.items() if k in allowed}
 
 def _expand_to_full_path(p: Union[str, Path]) -> str:
-    """
-    Convert a relative path, '~' path, or Path object
-    into a fully expanded absolute string path.
-    """
+    # """
+    # Convert a relative path, '~' path, or Path object
+    # into a fully expanded absolute string path.
+    # """
     # Ensure it is a Path object
     p = Path(p)
 
