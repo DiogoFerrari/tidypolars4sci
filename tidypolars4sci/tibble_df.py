@@ -1772,7 +1772,8 @@ class tibble(pl.DataFrame):
                    )
             return res
 
-    def freq(self, vars=None, groups=None, na_rm=False, na_label=None, alpha=0.05, tail='one-sided'):
+    def freq(self, vars=None, groups=None, na_rm=False, na_label=None,
+             alpha=0.05, tail='one-sided', weights=None):
         """
         Compute frequency table.
 
@@ -1800,6 +1801,10 @@ class tibble(pl.DataFrame):
 
         tail : str[one-sided, two-sided]
             Use one-sided or two-sided tails for the confidence interval
+
+        weights : str, optional
+            Name of the column containing survey weights. When provided,
+            proportions and frequencies are computed from weighted totals.
         
         Returns
         -------
@@ -1811,6 +1816,10 @@ class tibble(pl.DataFrame):
             isinstance(groups, list) or\
             isinstance(groups, dict) or\
             groups is None, "Incorrect 'groups' argument format. See documentation."
+        assert isinstance(weights, str) or weights is None, (
+            "Incorrect 'weights' argument format. Use a column name or None.")
+        assert weights is None or weights in self.names, (
+            "'weights' must name a column in the tibble.")
             
         vars_all = []
 
@@ -1830,6 +1839,9 @@ class tibble(pl.DataFrame):
             vars = {v:v for v in vars}
         vars_all += list(vars.keys())
 
+        assert weights is None or weights not in vars_all, (
+            "'weights' must name a column that is not included in 'vars' or 'groups'.")
+
         # labels = False
         # if isinstance(vars, str):
         #     vars = [vars]
@@ -1845,22 +1857,42 @@ class tibble(pl.DataFrame):
         # if groups:
         #     vars = groups + vars
 
-        res=self.select(vars_all)
+        weight_col = "__tp_weight__"
+        weighted_n_col = "__tp_weighted_n__"
+        while weight_col in self.names or weight_col in vars_all:
+            weight_col = "_" + weight_col
+        while weighted_n_col in self.names or weighted_n_col in vars_all:
+            weighted_n_col = "_" + weighted_n_col
+
+        select_cols = vars_all.copy()
+        if weights is not None and weights not in select_cols:
+            select_cols.append(weights)
+
+        res=self.select(select_cols)
+        if weights is not None:
+            res = res.rename({weights: weight_col}, tolower=False)
         
         if not na_rm:
             if na_label is not None:
                 res=res.replace_null({var:na_label for var in vars})
         else:
             res=res.drop_null()
+
+        if weights is None:
+            summarize_exprs = {"n": n()}
+            proportion_col = "n"
+        else:
+            summarize_exprs = {"n": n(), weighted_n_col: pl.col(weight_col).sum()}
+            proportion_col = weighted_n_col
     
         if not groups:
             res=(res
                    .group_by(vars_all)
-                 .summarize(n = n())
+                 .summarize(**summarize_exprs)
                  .mutate(
-                       p     = pl.col("n")/pl.col("n").sum(),
+                       p     = pl.col(proportion_col)/pl.col(proportion_col).sum(),
                        freq  = 100*pl.col("p"),
-                       stdev = 100*np.sqrt((pl.col('p')*(1-pl.col('p')))/pl.col('n'))
+                       stdev = 100*np.sqrt((pl.col('p')*(1-pl.col('p')))/pl.col(proportion_col))
                  )
             )
             # for var in vars:
@@ -1868,21 +1900,24 @@ class tibble(pl.DataFrame):
         else:
             res = (res
                    .group_by(vars_all)
-                   .summarize(n = n())
+                   .summarize(**summarize_exprs)
                    .group_by(list(groups.keys()))
                    .mutate(
-                       p     = pl.col("n")/pl.col("n").sum(),
+                       p     = pl.col(proportion_col)/pl.col(proportion_col).sum(),
                        freq  = 100*pl.col("p"),
-                       stdev = 100*np.sqrt((pl.col('p')*(1-pl.col('p')))/pl.col('n'))
+                       stdev = 100*np.sqrt((pl.col('p')*(1-pl.col('p')))/pl.col(proportion_col))
                    )
             )
 
         # vars.reverse()
         alpha_sided = alpha/2 if tail == 'two-sided' else alpha
         z = qnorm.ppf(1 - alpha_sided, loc=0, scale=1)
+        drop_cols = ['p']
+        if weights is not None:
+            drop_cols.append(weighted_n_col)
+        res = res.drop(drop_cols)
         res = (
             res
-            .drop('p')
             .mutate(n = as_integer('n'),
                     low  = pl.col('freq') - z*pl.col('stdev'),
                     high = pl.col('freq') + z*pl.col('stdev'))
