@@ -1563,7 +1563,7 @@ class tibble(pl.DataFrame):
 
     # Not tidy functions, but useful from pandas/polars 
     # -------------------------------------------------
-    def replace(self, rep, regex=False):
+    def replace(self, rep, regex=False, fill_missing_labels=True):
         """
         Replace method from polars pandas. Replaces values of a column.
 
@@ -1579,6 +1579,11 @@ class tibble(pl.DataFrame):
             If true, replace using regular expression. It uses pandas
             replace()
 
+        fill_missing_labels : bool
+            If True and a replacement dictionary does not include all
+            original values, unmatched values are converted to strings
+            and used as their own labels.
+
         Returns
         -------
         tibble
@@ -1593,14 +1598,28 @@ class tibble(pl.DataFrame):
         if engine=='polars':
             out = self.to_polars()
             for var, rep in rep.items():
-                try:
-                    out = out.with_columns(**{var : pl.col(var).replace(rep)})
-                except :
-                    out = out.with_columns(**{var : pl.col(var).replace_strict(rep)})
+                if fill_missing_labels:
+                    out = out.with_columns(**{
+                        var : pl.col(var).replace_strict(
+                            rep,
+                            default=pl.col(var).cast(pl.Utf8),
+                            return_dtype=pl.Utf8
+                        )
+                    })
+                else:
+                    try:
+                        out = out.with_columns(**{var : pl.col(var).replace(rep)})
+                    except :
+                        out = out.with_columns(**{var : pl.col(var).replace_strict(rep)})
             out = out.pipe(from_polars)
         else:
             out = self.to_pandas()
-            out = out.replace(to_replace=rep, regex=regex)
+            if fill_missing_labels and isinstance(rep, dict) and not regex:
+                for var in out.columns:
+                    if out[var].isin(rep.keys()).any():
+                        out[var] = out[var].map(lambda x: rep.get(x, str(x)))
+            else:
+                out = out.replace(to_replace=rep, regex=regex)
             out = out.pipe(from_pandas)
                     
         return out

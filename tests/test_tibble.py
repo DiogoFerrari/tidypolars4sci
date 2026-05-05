@@ -349,6 +349,28 @@ def test_replace_null():
     assert actual.equals(expected), "replace_null method failed"
     assert type(actual) == tp.tibble, "replace_null didn't return a tibble"
 
+def test_replace_fill_missing_labels_nested():
+    """Can replace partial value labels with original values"""
+    df = tp.tibble({'x': [1, 2, 3]})
+    actual = df.replace({'x': {1: 'a', 2: 'b'}})
+    expected = tp.tibble({'x': ['a', 'b', '3']})
+    assert actual.equals(expected), "replace partial labels failed"
+    assert type(actual) == tp.tibble, "replace didn't return a tibble"
+
+def test_replace_fill_missing_labels_flat():
+    """Can replace partial value labels with pandas-style mapping"""
+    df = tp.tibble({'x': [1, 2, 3], 'y': [4, 5, 6]})
+    actual = df.replace({1: 'a', 2: 'b'})
+    expected = tp.tibble({'x': ['a', 'b', '3'], 'y': [4, 5, 6]})
+    assert actual.equals(expected), "flat replace partial labels failed"
+
+def test_replace_without_fill_missing_labels():
+    """Can keep old replace behavior when label filling is disabled"""
+    df = tp.tibble({'x': [1, 2, 3]})
+    actual = df.replace({'x': {1: 10, 2: 20}}, fill_missing_labels=False)
+    expected = tp.tibble({'x': [10, 20, 3]})
+    assert actual.equals(expected), "replace without partial label fill failed"
+
 def test_set_names():
     """Can set_names"""
     df = tp.tibble(x = range(3), y = range(3))
