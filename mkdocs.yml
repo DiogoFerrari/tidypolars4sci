@@ -15,9 +15,17 @@ nav:
       - Read Files: usage/read.md
       - Write Files: usage/write.md
       - Convert from/to pandas/polars: usage/from-to-pandas-polars.md
+    - <font color="#2a9d8f">Check Data Structure</font>: usage/glimpse.md
     - <font color="#2a9d8f">Data manipulation</font>:
+      - Select columns: usage/data-manipulation/select.md
+      - Select rows (filter): usage/data-manipulation/filter.md
       - Mutate: usage/data-manipulation/mutate.md
+      - Replace values: usage/data-manipulation/replace.md
+      - Fill missing: usage/data-manipulation/fill.md
+      - Type conversion: usage/data-manipulation/type_conversion.md
+      - Nested Data: usage/data-manipulation/nest.md
     - <font color="#2a9d8f">Statistics</font>:
+      - Summarize columns: usage/statistics/summarize.md
       - Descriptive Statistics: usage/statistics/desc.md
       - Frequency Tables: usage/statistics/freq.md
       - Crosstables: usage/statistics/tab.md
@@ -33,7 +41,7 @@ nav:
     - performance/pivot-wide.md
     - performance/summarise.md
   # - API Reference: api.md
-  - API: reference/ ## using py to create one docstring API per page
+  - API reference: reference/ ## using py to create one docstring API per page
   - Releases: releases.md
 
 theme:
@@ -55,32 +63,31 @@ theme:
       icon: material/brightness-4
       name: Switch to light mode
   logo: _css/tidypolars4sci-logo2.png
+  icon:
+    repo: fontawesome/brands/github
   features:
     - navigation.tracking
     - navigation.instant
     - navigation.tabs
     - navigation.tabs.sticky
-    - navigation.footer
+    - navigation.path
+    # - navigation.expand # start headings expanded
+    # - navigation.sections # if used, won't collapse the headings of right-side menu
+    - content.code.annotate # (1)
+    - navigation.prune # fold the headings on the right-side that are not the focus
     - navigation.indexes
+    # - navigation.footer
     - content.tabs.link
     - content.code.copy
     - content.code.select
-  icon:
-    repo: fontawesome/brands/github
-  features:
     # - toc.integrate  # combine right ToC into the left ToC
     - toc.follow
     - content.code.copy
-    - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.path
-    - navigation.sections
-    - content.code.annotate # (1)
 
 
 
 # Preview controls
-strict: true
+strict: false
 
 
 extra_css:
@@ -89,10 +96,12 @@ extra_css:
 
 plugins:
   - search
+  - autolinks 
   - charts
   - mkdocstrings:
       handlers:
         python:
+          paths: ["tidypolars4sci"] # <-- for the API docstring using .py (per page docstring)
           options:
             show_source: true
             show_signature: true
@@ -103,11 +112,7 @@ plugins:
             show_symbol_type_toc: true
             show_root_toc_entry: false
             show_object_full_path: true
-          #
-          # below here for API per page
-          paths: ["tidypolars4sci"] # <-- for the API docstring using .py (per page docstring)
   - section-index
-  - autolinks 
   # starting here for one docstring per page
   - gen-files:
       scripts:

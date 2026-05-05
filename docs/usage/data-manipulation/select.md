@@ -1,0 +1,3 @@
+
+
+## By column type

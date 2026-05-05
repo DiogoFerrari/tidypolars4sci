@@ -1,0 +1,43 @@
+## More Examples
+
+Here are some examples
+
+``` {.python exports="both" results="output code" tangle="src-tibble_df-tibble-arrange.py" cache="yes" noweb="no" session="*Python*" linenums="1" eval="always"}
+from tidypolars4sci.data import mtcars as df
+
+df.head().print()
+```
+
+``` python
+shape: (5, 12)
+┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ name                  mpg   cyl     disp    hp   drat     wt    qsec    vs    am   gear   carb │
+│ str                   f64   i64      f64   i64    f64    f64     f64   i64   i64    i64    i64 │
+╞════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Mazda RX4           21.00     6   160.00   110   3.90   2.62   16.46     0     1      4      4 │
+│ Mazda RX4 Wag       21.00     6   160.00   110   3.90   2.88   17.02     0     1      4      4 │
+│ Datsun 710          22.80     4   108.00    93   3.85   2.32   18.61     1     1      4      1 │
+│ Hornet 4 Drive      21.40     6   258.00   110   3.08   3.21   19.44     1     0      3      1 │
+│ Hornet Sportabout   18.70     8   360.00   175   3.15   3.44   17.02     0     0      3      2 │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+Arranging by the column `name`:
+
+``` {.python exports="both" results="output code" tangle="src-tibble_df-tibble-arrange.py" cache="yes" noweb="no" session="*Python*" linenums="1" eval="always"}
+df.arrange('name').head().print()
+```
+
+``` python
+shape: (5, 12)
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ name                   mpg   cyl     disp    hp   drat     wt    qsec    vs    am   gear   carb │
+│ str                    f64   i64      f64   i64    f64    f64     f64   i64   i64    i64    i64 │
+╞═════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ AMC Javelin          15.20     8   304.00   150   3.15   3.44   17.30     0     0      3      2 │
+│ Cadillac Fleetwood   10.40     8   472.00   205   2.93   5.25   17.98     0     0      3      4 │
+│ Camaro Z28           13.30     8   350.00   245   3.73   3.84   15.41     0     0      3      4 │
+│ Chrysler Imperial    14.70     8   440.00   230   3.23   5.34   17.42     0     0      3      4 │
+│ Datsun 710           22.80     4   108.00    93   3.85   2.32   18.61     1     1      4      1 │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+```

@@ -1,0 +1,3 @@
+* By column type
+
+# see [[file:~/Dropbox/CienciasSociais/studies/computing/python/src/dev/running_tidypolars4sci.py::Select]]

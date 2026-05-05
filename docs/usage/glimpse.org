@@ -1,0 +1,232 @@
+
+
+** Prambule :noexport:
+
+#+BEGIN_SRC python :exports none :results output code :tangle src-read-write.py :cache yes :noweb no :session *Python* :title Loading data :linenums 1
+from docs.src.config import *
+#+END_SRC
+
+#+RESULTS[f30ea5a482b8555c56aa5369f14a97b629cf3ab7]:
+#+begin_src python
+#+end_src
+
+
+** Print
+
+A few functions can be used to print the data in the io-output and check the data structure. The function ~print()~ displays the entire data:
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+from tidypolars4sci.data import mtcars as df
+
+df.print()
+#+END_SRC
+
+#+RESULTS[572955e8e5b99d3a2227fb0907c676172ccb6964]:
+#+begin_src python
+shape: (32, 12)
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ name                    mpg   cyl     disp    hp   drat     wt    qsec    vs    am   gear   carb │
+│ str                     f64   i64      f64   i64    f64    f64     f64   i64   i64    i64    i64 │
+╞══════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Mazda RX4             21.00     6   160.00   110   3.90   2.62   16.46     0     1      4      4 │
+│ Mazda RX4 Wag         21.00     6   160.00   110   3.90   2.88   17.02     0     1      4      4 │
+│ Datsun 710            22.80     4   108.00    93   3.85   2.32   18.61     1     1      4      1 │
+│ Hornet 4 Drive        21.40     6   258.00   110   3.08   3.21   19.44     1     0      3      1 │
+│ Hornet Sportabout     18.70     8   360.00   175   3.15   3.44   17.02     0     0      3      2 │
+│ Valiant               18.10     6   225.00   105   2.76   3.46   20.22     1     0      3      1 │
+│ Duster 360            14.30     8   360.00   245   3.21   3.57   15.84     0     0      3      4 │
+│ Merc 240D             24.40     4   146.70    62   3.69   3.19   20.00     1     0      4      2 │
+│ Merc 230              22.80     4   140.80    95   3.92   3.15   22.90     1     0      4      2 │
+│ Merc 280              19.20     6   167.60   123   3.92   3.44   18.30     1     0      4      4 │
+│ Merc 280C             17.80     6   167.60   123   3.92   3.44   18.90     1     0      4      4 │
+│ Merc 450SE            16.40     8   275.80   180   3.07   4.07   17.40     0     0      3      3 │
+│ Merc 450SL            17.30     8   275.80   180   3.07   3.73   17.60     0     0      3      3 │
+│ Merc 450SLC           15.20     8   275.80   180   3.07   3.78   18.00     0     0      3      3 │
+│ Cadillac Fleetwood    10.40     8   472.00   205   2.93   5.25   17.98     0     0      3      4 │
+│ Lincoln Continental   10.40     8   460.00   215   3.00   5.42   17.82     0     0      3      4 │
+│ Chrysler Imperial     14.70     8   440.00   230   3.23   5.34   17.42     0     0      3      4 │
+│ Fiat 128              32.40     4    78.70    66   4.08   2.20   19.47     1     1      4      1 │
+│ Honda Civic           30.40     4    75.70    52   4.93   1.61   18.52     1     1      4      2 │
+│ Toyota Corolla        33.90     4    71.10    65   4.22   1.83   19.90     1     1      4      1 │
+│ Toyota Corona         21.50     4   120.10    97   3.70   2.46   20.01     1     0      3      1 │
+│ Dodge Challenger      15.50     8   318.00   150   2.76   3.52   16.87     0     0      3      2 │
+│ AMC Javelin           15.20     8   304.00   150   3.15   3.44   17.30     0     0      3      2 │
+│ Camaro Z28            13.30     8   350.00   245   3.73   3.84   15.41     0     0      3      4 │
+│ Pontiac Firebird      19.20     8   400.00   175   3.08   3.85   17.05     0     0      3      2 │
+│ Fiat X1-9             27.30     4    79.00    66   4.08   1.94   18.90     1     1      4      1 │
+│ Porsche 914-2         26.00     4   120.30    91   4.43   2.14   16.70     0     1      5      2 │
+│ Lotus Europa          30.40     4    95.10   113   3.77   1.51   16.90     1     1      5      2 │
+│ Ford Pantera L        15.80     8   351.00   264   4.22   3.17   14.50     0     1      5      4 │
+│ Ferrari Dino          19.70     6   145.00   175   3.62   2.77   15.50     0     1      5      6 │
+│ Maserati Bora         15.00     8   301.00   335   3.54   3.57   14.60     0     1      5      8 │
+│ Volvo 142E            21.40     4   121.00   109   4.11   2.78   18.60     1     1      4      2 │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+** Glimpse
+
+To list the variables with their type, first values, and a few more pieces of information, use ~glimpse()~:
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df.glimpse()
+#+END_SRC
+
+#+RESULTS[e010ebe9bc84d8d82a80d1adf93008c88b7aa396]:
+#+begin_src python
+Columns matching pattern '.':
+ Var Type     Uniq Miss (%) Head                                                       
+name <object>   32    0 0% ['Mazda RX4' 'Mazda RX4 Wag' 'Datsun 710' 'Hornet 4 Drive'
+...
+ mpg <float64>  25    0 0% [21.  21.  22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 17.8 16....
+ cyl <int64>     3    0 0% [6 6 4 6 8 6 8 4 4 6 6 8 8 8 8 8 8 4 4 4 4 8 8 8 8 4 4 4 8 ...
+disp <float64>  27    0 0% [160.  160.  108.  258.  360.  225.  360.  146.7 140.8 167....
+  hp <int64>    22    0 0% [110 110  93 110 175 105 245  62  95 123 123 180 180 180 20...
+drat <float64>  22    0 0% [3.9  3.9  3.85 3.08 3.15 2.76 3.21 3.69 3.92 3.92 3.92 3.0...
+  wt <float64>  29    0 0% [2.62  2.875 2.32  3.215 3.44  3.46  3.57  3.19  3.15  3.44...
+qsec <float64>  30    0 0% [16.46 17.02 18.61 19.44 17.02 20.22 15.84 20.   22.9  18.3...
+  vs <int64>     2    0 0% [0 0 1 1 0 1 0 1 1 1 1 0 0 0 0 0 0 1 1 1 1 0 0 0 0 1 0 1 0 ...
+  am <int64>     2    0 0% [1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 1 1 1 1 ...
+gear <int64>     3    0 0% [4 4 4 3 3 3 3 4 4 4 4 3 3 3 3 3 3 4 4 4 3 3 3 3 3 4 5 5 5 ...
+carb <int64>     6    0 0% [4 4 1 1 2 1 4 2 2 4 4 3 3 3 4 4 4 1 2 1 1 2 2 4 2 1 2 2 4 ...
+
+[Rows: 32; Columns 12]
+#+end_src
+
+It is also possible to show only the variables show name matches a string. For instance, this shows only variables with 'a' in their name:
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df.glimpse("a")
+#+END_SRC
+
+#+RESULTS[c183f65057973bbd4d683faf7f2bf62acbb493f6]:
+#+begin_src python
+Columns matching pattern 'a':
+ Var Type     Uniq Miss (%) Head                                                       
+name <object>   32    0 0% ['Mazda RX4' 'Mazda RX4 Wag' 'Datsun 710' 'Hornet 4 Drive'
+...
+drat <float64>  22    0 0% [3.9  3.9  3.85 3.08 3.15 2.76 3.21 3.69 3.92 3.92 3.92 3.0...
+  am <int64>     2    0 0% [1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 1 1 1 1 ...
+gear <int64>     3    0 0% [4 4 4 3 3 3 3 4 4 4 4 3 3 3 3 3 3 4 4 4 3 3 3 3 3 4 5 5 5 ...
+carb <int64>     6    0 0% [4 4 1 1 2 1 4 2 2 4 4 3 3 3 4 4 4 1 2 1 1 2 2 4 2 1 2 2 4 ...
+
+[Rows: 32; Columns 12]
+#+end_src
+
+** Column names
+To list the column names:
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+print(df.names)
+#+END_SRC
+
+#+RESULTS[ed88f13650121267ad48ab09b2efe6849ed7985b]:
+#+begin_src python
+['name', 'mpg', 'cyl', 'disp', 'hp', 'drat', 'wt', 'qsec', 'vs', 'am', 'gear', 'carb']
+#+end_src
+
+Or the column names that contains 'a':
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+print(df.colnames('a'))
+#+END_SRC
+
+#+RESULTS[40d674fdf7b3f23a1ddbf01aa0c3ae08df85e64e]:
+#+begin_src python
+['name', 'carb', 'gear', 'drat', 'am']
+#+end_src
+
+** First rows
+
+To show the first rows only:
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df.head().print()
+#+END_SRC
+
+#+RESULTS[3eff8417b3d9232bd8a9642b2c853aaceea2bc7c]:
+#+begin_src python
+shape: (5, 12)
+┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ name                  mpg   cyl     disp    hp   drat     wt    qsec    vs    am   gear   carb │
+│ str                   f64   i64      f64   i64    f64    f64     f64   i64   i64    i64    i64 │
+╞════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Mazda RX4           21.00     6   160.00   110   3.90   2.62   16.46     0     1      4      4 │
+│ Mazda RX4 Wag       21.00     6   160.00   110   3.90   2.88   17.02     0     1      4      4 │
+│ Datsun 710          22.80     4   108.00    93   3.85   2.32   18.61     1     1      4      1 │
+│ Hornet 4 Drive      21.40     6   258.00   110   3.08   3.21   19.44     1     0      3      1 │
+│ Hornet Sportabout   18.70     8   360.00   175   3.15   3.44   17.02     0     0      3      2 │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+
+To show the first ~n~ rows only (say, the first 10):
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df.head(10).print()
+#+END_SRC
+
+#+RESULTS[18d11cc9ecbb20abc523269d7945ab360d94d925]:
+#+begin_src python
+shape: (10, 12)
+┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ name                  mpg   cyl     disp    hp   drat     wt    qsec    vs    am   gear   carb │
+│ str                   f64   i64      f64   i64    f64    f64     f64   i64   i64    i64    i64 │
+╞════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Mazda RX4           21.00     6   160.00   110   3.90   2.62   16.46     0     1      4      4 │
+│ Mazda RX4 Wag       21.00     6   160.00   110   3.90   2.88   17.02     0     1      4      4 │
+│ Datsun 710          22.80     4   108.00    93   3.85   2.32   18.61     1     1      4      1 │
+│ Hornet 4 Drive      21.40     6   258.00   110   3.08   3.21   19.44     1     0      3      1 │
+│ Hornet Sportabout   18.70     8   360.00   175   3.15   3.44   17.02     0     0      3      2 │
+│ Valiant             18.10     6   225.00   105   2.76   3.46   20.22     1     0      3      1 │
+│ Duster 360          14.30     8   360.00   245   3.21   3.57   15.84     0     0      3      4 │
+│ Merc 240D           24.40     4   146.70    62   3.69   3.19   20.00     1     0      4      2 │
+│ Merc 230            22.80     4   140.80    95   3.92   3.15   22.90     1     0      4      2 │
+│ Merc 280            19.20     6   167.60   123   3.92   3.44   18.30     1     0      4      4 │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+** Last rows
+Similarly, for the last rows:
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df.tail().print()
+#+END_SRC
+
+#+RESULTS[1ba96e2e19eb093d1bd598c5e9752ca924af86fc]:
+#+begin_src python
+shape: (5, 12)
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│ name               mpg   cyl     disp    hp   drat     wt    qsec    vs    am   gear   carb │
+│ str                f64   i64      f64   i64    f64    f64     f64   i64   i64    i64    i64 │
+╞═════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Lotus Europa     30.40     4    95.10   113   3.77   1.51   16.90     1     1      5      2 │
+│ Ford Pantera L   15.80     8   351.00   264   4.22   3.17   14.50     0     1      5      4 │
+│ Ferrari Dino     19.70     6   145.00   175   3.62   2.77   15.50     0     1      5      6 │
+│ Maserati Bora    15.00     8   301.00   335   3.54   3.57   14.60     0     1      5      8 │
+│ Volvo 142E       21.40     4   121.00   109   4.11   2.78   18.60     1     1      4      2 │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+
+#+BEGIN_SRC python :exports both :results output code :tangle src-glimpse.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+df.tail(10).print()
+#+END_SRC
+
+#+RESULTS[15665c47ceb4e6b56e02493ec06bfd51f3839176]:
+#+begin_src python
+shape: (10, 12)
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+│ name                 mpg   cyl     disp    hp   drat     wt    qsec    vs    am   gear   carb │
+│ str                  f64   i64      f64   i64    f64    f64     f64   i64   i64    i64    i64 │
+╞═══════════════════════════════════════════════════════════════════════════════════════════════╡
+│ AMC Javelin        15.20     8   304.00   150   3.15   3.44   17.30     0     0      3      2 │
+│ Camaro Z28         13.30     8   350.00   245   3.73   3.84   15.41     0     0      3      4 │
+│ Pontiac Firebird   19.20     8   400.00   175   3.08   3.85   17.05     0     0      3      2 │
+│ Fiat X1-9          27.30     4    79.00    66   4.08   1.94   18.90     1     1      4      1 │
+│ Porsche 914-2      26.00     4   120.30    91   4.43   2.14   16.70     0     1      5      2 │
+│ Lotus Europa       30.40     4    95.10   113   3.77   1.51   16.90     1     1      5      2 │
+│ Ford Pantera L     15.80     8   351.00   264   4.22   3.17   14.50     0     1      5      4 │
+│ Ferrari Dino       19.70     6   145.00   175   3.62   2.77   15.50     0     1      5      6 │
+│ Maserati Bora      15.00     8   301.00   335   3.54   3.57   14.60     0     1      5      8 │
+│ Volvo 142E         21.40     4   121.00   109   4.11   2.78   18.60     1     1      4      2 │
+└───────────────────────────────────────────────────────────────────────────────────────────────┘
+#+end_src
+

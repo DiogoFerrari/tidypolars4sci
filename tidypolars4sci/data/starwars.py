@@ -6,10 +6,12 @@ DATA_DIR = Path(__file__).parent
 
 def __load_starwars__():
     starwars, _ = read_data(fn=DATA_DIR / "starwars.rda", sep=',', silently=True)
+    starwars = tibble(starwars)
     starwars.__doc__ = """
     Starwars characters dataset.
 
-    ## Description
+    Description
+    -----------
 
     A dataset containing information on Star Wars characters, originally sourced from SWAPI 
     (https://swapi.py4e.com/) and subsequently revised to reflect additional research into 
@@ -35,16 +37,17 @@ def __load_starwars__():
     | species     | str   | Name of the character's species                                               |
     +-------------+-------+-------------------------------------------------------------------------------+
 
-    ## Notes
+    Notes
+    -----
     The data reflect additional research into the representation of gender and sex in the 
     Star Wars universe.
 
-
-    ## Source
-
-    SWAPI, the Star Wars API, https://swapi.py4e.com/.
+    References
+    ----------
+    * Wickham H (2016). ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York.
+      ISBN 978-3-319-24277-4, https://ggplot2.tidyverse.org.
 
     """
-    return tibble(starwars)
+    return starwars
 
 # starwars = __load_starwars__()

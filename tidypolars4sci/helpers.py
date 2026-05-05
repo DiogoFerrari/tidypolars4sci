@@ -105,7 +105,8 @@ def matches(match, ignore_case = False):
     Parameters
     ----------
     match : str
-        String to match columns
+        String to match column names
+
     ignore_case : bool
         If True, the default, ignores case when matching names.
 
@@ -114,11 +115,18 @@ def matches(match, ignore_case = False):
     >>> df = tp.tibble({'a': range(3), 'add': range(3), 'sub': ['a', 'a', 'b']})
     >>> df.select(tp.maches('a'))
     """
-    if ignore_case == True:
-        out = f"^(?i){match}.*$"
-    else:
-        out = f"^{match}.*$"
-    return out
+    assert isinstance(match, str), "'match' must be a string."
+
+    res = f"{match}"
+    if ignore_case:
+        res = f"(?i){res}"
+
+    if res[0]!='^':
+        res = f"^.*{res}"
+    if res[-1]!='$':
+        res = f"{res}.*$"
+
+    return res
 
 def desc(x):
     """Mark a column to order in descending"""

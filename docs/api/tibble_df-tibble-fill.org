@@ -1,0 +1,105 @@
+
+** Prambule :noexport:
+
+#+BEGIN_SRC python :exports none :results output code :tangle src-read-write.py :cache yes :noweb no :session *Python* :title Loading data :linenums 1
+from docs.src.config import *
+#+END_SRC
+
+#+RESULTS[f30ea5a482b8555c56aa5369f14a97b629cf3ab7]:
+#+begin_src python
+#+end_src
+
+
+** More Examples
+
+Here are some examples
+
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-tibble_df-tibble-arrange.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+from tidypolars4sci.data import mtcars as df
+import tidypolars4sci as tp
+
+dfsmall = df.mutate(drat=tp.case_when(tp.col('drat')==3.9, None, True, tp.col('drat')),
+                    hp_carb = tp.case_when(tp.col('hp')==175, None,
+                                           True, tp.col('hp')+tp.col('carb')))\
+            .slice(list(range(5)))\
+            .select('drat', 'hp', 'carb', 'hp_carb')
+dfsmall.print()
+#+END_SRC
+
+#+RESULTS[19406f27eb9950c0b834e3a49bb72e5c41d59343]:
+#+begin_src python
+shape: (5, 4)
+┌─────────────────────────────┐
+│ drat    hp   carb   hp_carb │
+│  f64   i64    i64       i64 │
+╞═════════════════════════════╡
+│ null   110      4       114 │
+│ null   110      4       114 │
+│ 3.85    93      1        94 │
+│ 3.08   110      1       111 │
+│ 3.15   175      2      null │
+└─────────────────────────────┘
+#+end_src
+
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-tibble_df-tibble-fill.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+dfsmall.fill('hp_carb').print()
+#+END_SRC
+
+#+RESULTS[1c32772931b57f4d7550e9bab98d62a7dd30cf46]:
+#+begin_src python
+shape: (5, 4)
+┌─────────────────────────────┐
+│ drat    hp   carb   hp_carb │
+│  f64   i64    i64       i64 │
+╞═════════════════════════════╡
+│ null   110      4       114 │
+│ null   110      4       114 │
+│ 3.85    93      1        94 │
+│ 3.08   110      1       111 │
+│ 3.15   175      2       111 │
+└─────────────────────────────┘
+#+end_src
+
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-tibble_df-tibble-fill.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+dfsmall.fill('drat').print()
+#+END_SRC
+
+#+RESULTS[106cdc445ca269ad6c0c9747509cbdae31a1af3a]:
+#+begin_src python
+shape: (5, 4)
+┌─────────────────────────────┐
+│ drat    hp   carb   hp_carb │
+│  f64   i64    i64       i64 │
+╞═════════════════════════════╡
+│ null   110      4       114 │
+│ null   110      4       114 │
+│ 3.85    93      1        94 │
+│ 3.08   110      1       111 │
+│ 3.15   175      2      null │
+└─────────────────────────────┘
+#+end_src
+
+# 
+#+BEGIN_SRC python :exports both :results output code :tangle src-tibble_df-tibble-fill.py :cache yes :noweb no :session *Python* :linenums 1 :eval always
+dfsmall.fill('drat', direction='up').print()
+#+END_SRC
+
+#+RESULTS[6dc836dc748bedc805d202c66d5a0ce657f98931]:
+#+begin_src python
+shape: (5, 4)
+┌─────────────────────────────┐
+│ drat    hp   carb   hp_carb │
+│  f64   i64    i64       i64 │
+╞═════════════════════════════╡
+│ 3.85   110      4       114 │
+│ 3.85   110      4       114 │
+│ 3.85    93      1        94 │
+│ 3.08   110      1       111 │
+│ 3.15   175      2      null │
+└─────────────────────────────┘
+#+end_src
+
+#+RESULTS:

@@ -26,12 +26,12 @@ from .utils import *
 # )
 
 API_labels = {
-    "tibble_df":'Tibble',
-    'funs' : "Special Functions",
-    'helpers' : "Helpers",
-    'io' : "Read Files",
-    'stats': "Statistics",
-    'type_conversion':'Type Conversion'
+    'io'             : "Read Files",
+    "tibble_df"      : 'Tibble',
+    'stats'          : "Summary Statistics",
+    'funs'           : "Special Functions",
+    'helpers'        : "Helpers",
+    'type_conversion': 'Type Conversion',
 }
 
 

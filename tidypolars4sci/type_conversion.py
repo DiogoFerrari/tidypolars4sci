@@ -6,7 +6,8 @@ from .utils import (
 __all__ = [
     # Type conversion
     "as_boolean", "as_character", "as_categorical", "as_factor",
-    "as_float", "as_integer", "as_logical", "as_string", "cast"
+    "as_float", "as_integer", "as_logical", "as_string", "cast",
+    'as_type'
     ]
 
 
@@ -141,3 +142,30 @@ def cast(x, dtype):
     """
     x = _col_expr(x)
     return x.cast(dtype)
+
+def as_type(x, dtype):
+    """
+    General type conversion.
+
+    Parameters
+    ----------
+    x : Expr, Series
+        Column to operate on
+    dtype : DataType
+        Type to convert to
+
+    Examples
+    --------
+    >>> df.mutate(abs_x = tp.cast(col('x'), tp.Float64))
+    """
+    if dtype in ['numeric', 'float']:
+        res = as_float(x)
+    elif  dtype in ['integer', 'int']:
+        res = as_integer(x)
+    elif  dtype in ['string', 'str', 'char', 'character']:
+        res = as_string(x)
+    elif  dtype in ['factor', 'categorical', 'cat']:
+        res = as_factor(x)
+    elif  dtype in ['bool', 'boolean', 'logical']:
+        res = as_boolean(x)
+    return res

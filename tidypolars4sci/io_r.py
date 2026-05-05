@@ -259,7 +259,7 @@ def _extract_labels(r_df: ro.vectors.DataFrame) -> DATA_LABELS:
             if mapping:
                 values[var] = mapping
 
-    return DATA_LABELS(original=var_names, variables=variables, values=values)
+    return DATA_LABELS(original=var_names, variables=variables, values=values, types={})
 
 def load_r(
     path: str,

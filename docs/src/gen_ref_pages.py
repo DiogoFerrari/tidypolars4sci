@@ -1,15 +1,24 @@
-"""Generate the code reference pages and navigation."""
-
 from __future__ import annotations
-
 import ast
 import importlib.util
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Tuple
-import re
+import re, os
 import mkdocs_gen_files
 
+# --- CONFIGURATION ---
+# Options: "alphabetically" or "API_label label order"
+SORT_BY = "API_label label order" 
+# ---------------------
+
+root = Path(__file__).parent.parent.parent
+MODULE_NAME = os.path.basename(os.path.normpath(root))
+src = root / MODULE_NAME 
+api_docs_dir = root / "docs" / "api"
+tables_and_figures_dir = api_docs_dir / "tables-and-figures"
+
+nav = mkdocs_gen_files.Nav()
 
 @dataclass
 class DocumentedMethod:
@@ -169,6 +178,7 @@ def _load_api_labels(src_dir: Path) -> dict[str, str]:
     if not isinstance(labels, dict):
         return {}
 
+    # Python 3.7+ guarantees insertion order for dicts
     return {str(key): str(value) for key, value in labels.items()}
 
 def _ensure_tables_and_figures(target_doc_dir: Path) -> None:
@@ -201,19 +211,10 @@ def _write_doc_page(
     directive_options: str | None = None,
 ) -> None:
     with mkdocs_gen_files.open(doc_path, "w") as fd:
-        # fd.write("---\nhide:\n  - toc\n---\n\n")
-        # fd.write("---\nhide:\n  - toc\n---\n\n")
         if heading_title:
             symbol = _symbol_html(symbol_kind)
-            # fd.write(f"## {symbol} {heading_title}\n\n")
             if signature:
                 fd.write(f"## Signature/Parameters\n")
-                # fd.write(f"<code class='doc-symbol doc-symbol-toc doc-symbol-{symbol_kind}'></code> <code class=\"language-python\">\n")
-                # fd.write(f"<pre><code class=\"language-python\">\n")
-                # # fd.write(signature)
-                # fd.write(re.sub(pattern=".*def ", repl='', string=signature))
-                # fd.write("\n</code></pre>\n\n")
-                # fd.write(f"<code class='doc-symbol doc-symbol-toc doc-symbol-{symbol_kind}'></code> <code class=\"language-python\">\n")
                 fd.write(f"``` python\n")
                 fd.write(signature)
                 fd.write("\n```\n\n")
@@ -227,20 +228,22 @@ def _write_doc_page(
     mkdocs_gen_files.set_edit_path(doc_path, edit_path)
     _ensure_tables_and_figures(doc_path.parent)
 
+def _escape_nav_label(label: str) -> str:
+    # """
+    # Escapes the label if it starts with a number followed by a dot.
+    # Example: "01. Label" -> "01\. Label"
+    # This prevents Markdown from interpreting it as an ordered list item.
+    # """
+    return re.sub(r"^(\d+)\.", r"\1)", label)
 
-# change these files
-nav = mkdocs_gen_files.Nav()
-MODULE_NAME = "tidypolars4sci"
-root = Path(__file__).parent.parent.parent
-src = root / MODULE_NAME 
-api_docs_dir = root / "docs" / "api"
-tables_and_figures_dir = api_docs_dir / "tables-and-figures"
 _copied_tables_and_figures_targets: set[Path] = set()
 api_labels = _load_api_labels(src)
 
+# 1. FILTERING PHASE
+# Gather entries and parse AST immediately to determine if they are empty.
+valid_entries = []
 
-
-for path in sorted(src.rglob("*.py")):
+for path in src.rglob("*.py"):
     module_path = path.relative_to(src).with_suffix("")
     module_ident_parts = tuple(module_path.parts)
     module_file_stem = path.stem
@@ -252,13 +255,76 @@ for path in sorted(src.rglob("*.py")):
     if module_doc_parts[-1] == "__main__":
         module_doc_parts = module_doc_parts[:-1] + ("index",)
 
-    module_label = api_labels.get(module_file_stem, module_doc_parts[-1])
-    module_nav_parts = module_doc_parts[:-1] + (str(module_label),)
-
+    # Parse the file now to check for content
     source = path.read_text(encoding="utf-8")
-    tree = ast.parse(source)
+    # tree = ast.parse(source)
+    try:
+        tree = ast.parse(source, filename=str(path))
+    except SyntaxError as e:
+        print(f"\n[gen_ref_pages] Error parsing {path}: {e}\n")
+        raise
 
     classes, functions = _get_documented_members(tree)
+
+    # If the file has no documented members, skip it completely.
+    if not classes and not functions:
+        continue
+
+    # Get the raw label
+    module_label = api_labels.get(module_file_stem, module_doc_parts[-1])
+    
+    # Store the entry along with the parsed data (optimization)
+    valid_entries.append({
+        "path": path,
+        "module_file_stem": module_file_stem,
+        "module_ident_parts": module_ident_parts,
+        "module_doc_parts": module_doc_parts,
+        "label": str(module_label),
+        "classes": classes,
+        "functions": functions
+    })
+
+
+# 2. SORTING PHASE
+if SORT_BY == "API_label label order":
+    # Get the list of keys in the order they appear in __init__.py
+    ordered_keys = list(api_labels.keys())
+    
+    def get_sort_index(entry):
+        try:
+            return ordered_keys.index(entry["module_file_stem"])
+        except ValueError:
+            # If file not in API_labels, put it at the end
+            return 99999
+
+    valid_entries.sort(key=get_sort_index)
+
+    # 3. NUMBERING PHASE (1 to k)
+    # Apply numbering only to the filtered, valid entries
+    for i, entry in enumerate(valid_entries):
+        # Using i+1 to start from 01 instead of 00
+        entry["label"] = f"{i+1:02d}. {entry['label']}"
+
+else:
+    # Default: Sort alphabetically by the label, no numbering
+    valid_entries.sort(key=lambda x: x["label"])
+
+
+# 4. GENERATION PHASE
+for entry in valid_entries:
+    path = entry["path"]
+    module_file_stem = entry["module_file_stem"]
+    module_ident_parts = entry["module_ident_parts"]
+    module_doc_parts = entry["module_doc_parts"]
+    
+    # Use the stored (and potentially numbered) label
+    module_label = _escape_nav_label(entry["label"])
+    
+    module_nav_parts = module_doc_parts[:-1] + (module_label,)
+
+    # Retrieve pre-parsed data
+    classes = entry["classes"]
+    functions = entry["functions"]
 
     module_edit_path = path.relative_to(root)
 

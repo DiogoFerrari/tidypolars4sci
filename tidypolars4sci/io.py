@@ -1,4 +1,4 @@
-from .tibble_df import from_pandas, from_polars
+from .tibble_df import from_pandas, from_polars, tibble
 from .utils import _filter_kwargs_for, _expand_to_full_path_or_url
 # 
 import polars as pl
@@ -8,9 +8,7 @@ import pandas as pd
 import pyreadstat
 # from pyreadr import read_r
 from dataclasses import dataclass
-from typing import Callable, List
-from typing import Callable, List, Any
-from typing import Dict, Optional, Tuple
+from typing import Callable, List, Any, Dict, Optional, Tuple
 # google spreadsheet
 import gspread
 from google.oauth2.service_account import Credentials
@@ -24,6 +22,7 @@ class DATA_LABELS:
     original: List[str]
     variables: Dict[str, Optional[str]]
     values: Dict[str, Optional[Dict[Any, str]]]
+    types: Dict[str, Any]
 
     def __post_init__(self):
         # Keep only variables with a real non-empty string label
@@ -275,11 +274,11 @@ class read_data():
         fn = kws.get("fn", None)
         n = kws.get("n_headers", 0)
         if n>0:
-            df  = pl.from_pandas(reader(fn, skiprows=n, header=None, **kws_reader))
-            dfh = pl.from_pandas(reader(fn, nrows=n, header=None, **kws_reader))
+            df  = from_pandas(reader(fn, skiprows=n, header=None, **kws_reader))
+            dfh = from_pandas(reader(fn, nrows=n, header=None, **kws_reader))
             df = read_data._apply_multiheader_from_frames(df, dfh, **kws)
         else:
-            df = from_polars(from_pandas(reader(fn, **kws_reader)))
+            df = from_pandas(reader(fn, **kws_reader))
 
         return df
 
@@ -301,7 +300,7 @@ class read_data():
         labels    = reader(fn, iterator=True)
         variables = labels.variable_labels()
         values    = labels.value_labels()
-        labels    = DATA_LABELS(original=df.names, variables=variables, values=values)
+        labels    = DATA_LABELS(original=df.names, variables=variables, values=values, types={})
         return df, labels
 
     def read_sav(**kws):
@@ -332,7 +331,7 @@ class read_data():
         # collect labels
         variables = meta.column_names_to_labels
         values    = meta.variable_value_labels
-        labels    = DATA_LABELS(original=df.names, variables=variables, values=values)
+        labels    = DATA_LABELS(original=df.names, variables=variables, values=values, types={})
         
         return df, labels
 
@@ -404,8 +403,8 @@ class read_data():
             return base
         return f"{base} ({sep.join(lowers)})"
 
-    def _apply_multiheader_from_frames(df_data: pl.DataFrame,
-                                       df_header: pl.DataFrame,
+    def _apply_multiheader_from_frames(df_data: tibble,
+                                       df_header: tibble,
                                        combine: Callable[[List[str]], str] | None = None,
                                        combine_parenthesis_sep = '; ',
                                        multi_col_sentinel: Any = "None",
@@ -448,6 +447,9 @@ class read_data():
         # df_data = df_data.to_polars()
         # df_header = df_header.to_polars()
         combine = kws.get("header_combine_rule", None)
+
+        df_data = df_data.to_polars()
+        df_header = df_header.to_polars()
 
         if combine is None:
             combine = lambda levels: read_data._combine_with_parens(levels, sep=combine_parenthesis_sep)

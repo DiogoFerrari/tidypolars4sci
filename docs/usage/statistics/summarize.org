@@ -1,0 +1,11 @@
+
+** Prambule :noexport:
+
+#+BEGIN_SRC python :exports none :results none :tangle freq.py :cache yes :hlines yes :colnames yes :noweb no :session *Python*
+from docs.src.config import *
+#+END_SRC
+
+
+
+** Basic summary
+

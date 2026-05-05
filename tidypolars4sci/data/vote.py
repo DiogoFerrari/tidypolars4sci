@@ -1,15 +1,19 @@
 from pathlib import Path
 from ..io import read_data
+from ..io import DATA_LABELS
+from ..type_conversion import as_type
 from ..tibble_df import tibble
 
 DATA_DIR = Path(__file__).parent
 
 def __load_vote__():
     vote = read_data(fn=DATA_DIR / "vote.csv", sep=',', silently=True)
-    vote.__doc__ = """
+    df = tibble(vote)
+    df.__doc__ = """
     Synthetic vote experiment data.
 
-    ## Description
+    Description
+    -----------
 
     A dataset containing simulated data on vote behavior.
 
@@ -30,19 +34,16 @@ def __load_vote__():
     | rate_conservative  | float | Voters  rate of the most conservative in-party candidate         |
     |                    |       | (Dislike=low value; Like=high value)                             |
     +-------------+-------+-------------------------------------------------------------------------+
-
     """
-    vote.__codebook__ = codebook()
-    return tibble(vote)
+    labels = codebook()
+    df = df.mutate(**{var:as_type(var, t) for var, t in labels.types.items()})
+    return df, labels
 
 def codebook():
-    data = {
-        "Variable": ["age", "income", "gender", "ideology",
-                     "treatment", "group", "partisanship",
-                     "vote_conservative", "rate_conservative"],
-        "Type": ["int", "float", "int", "float", "int",
-                 "str", "str", "int", "float"],
-        "Description": [
+    vars = ["age", "income", "gender", "ideology",
+                       "treatment", "group", "partisanship",
+                       "vote_conservative", "rate_conservative"]
+    labels = [
             "Age",
             "Income (standardized)",
             "Gender (Male=0; Female=1)",
@@ -53,5 +54,10 @@ def codebook():
             "Voted for the most conservative in-party candidate (Yes=1, No=0)",
             "Voters rate of the most conservative in-party candidate (Dislike=low value; Like=high value)"
         ]
-    }
-    return tibble(data)
+    types = ["int", "float", "int", "float", "int", "str", "str", "int", "float"]
+
+    original = vars
+    variables = dict(zip(vars, labels))
+    types = dict(zip(vars, types))
+    labels = DATA_LABELS(original, variables, values={}, types=types)
+    return labels

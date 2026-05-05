@@ -19,9 +19,10 @@ from operator import not_
 import numpy as np
 import pandas as pd
 import polars.selectors as cs
-import re, copy, os
+import re, copy, os, inspect
 from itertools import chain
 import warnings
+from scipy.stats import norm as qnorm
 warnings.filterwarnings("ignore", category=pl.exceptions.MapWithoutReturnDtypeWarning)
 
 __all__ = [
@@ -286,7 +287,7 @@ class tibble(pl.DataFrame):
 
     def drop_null(self, *args):
         """
-        Drop rows containing missing values
+        Drop rows containing missing values.
 
         Parameters
         ----------
@@ -327,7 +328,8 @@ class tibble(pl.DataFrame):
 
     def fill(self, *args, direction = 'down', by = None):
         """
-        Fill in missing values with previous or next value
+        Fill in missing values with previous or next value.
+        See also replace_null().
 
         Parameters
         ----------
@@ -379,7 +381,7 @@ class tibble(pl.DataFrame):
     def filter(self, *args,
                by = None):
         """
-        Filter rows on one or more conditions
+        Filter rows on one or more conditions. See also slice().
 
         Parameters
         ----------
@@ -1078,9 +1080,9 @@ class tibble(pl.DataFrame):
         """
         rows = _as_list(args)
         if _uses_by(by):
-            df = super(tibble, self).group_by(by).map_groups(lambda x: x.select(pl.all().gather(rows)))
+            df = self.to_polars().group_by(by).map_groups(lambda x: x.select(pl.all().gather(rows)))
         else:
-            df = super(tibble, self).select(pl.all().gather(rows))
+            df = self.to_polars().select(pl.all().gather(rows))
         return df.pipe(from_polars)
 
     def slice_head(self, n = 5, *, by = None):
@@ -1102,9 +1104,9 @@ class tibble(pl.DataFrame):
         """
         col_order = self.names
         if _uses_by(by):
-            df = super(tibble, self).group_by(by).head(n)
+            df = self.to_polars().group_by(by).head(n)
         else:
-            df = super(tibble, self).head(n)
+            df = self.to_polars().head(n)
         df = df.select(col_order)
         return df.pipe(from_polars)
 
@@ -1127,9 +1129,9 @@ class tibble(pl.DataFrame):
         """
         col_order = self.names
         if _uses_by(by):
-            df = super(tibble, self).group_by(by).tail(n)
+            df = self.to_polars().group_by(by).tail(n)
         else:
-            df = super(tibble, self).tail(n)
+            df = self.to_polars().tail(n)
         df = df.select(col_order)
         return df.pipe(from_polars)
     
@@ -1163,17 +1165,17 @@ class tibble(pl.DataFrame):
         Examples
         --------
         >>> df = tp.tibble({'a': range(3), 'b': range(3), 'c': ['a', 'a', 'b']})
-        >>> df.summarize(avg_a = tp.mean(col('a')))
-        >>> df.summarize(avg_a = tp.mean(col('a')),
+        >>> df.summarize(avg_a = tp.mean(tp.col('a')))
+        >>> df.summarize(avg_a = tp.mean(tp.col('a')),
         ...              by = 'c')
-        >>> df.summarize(avg_a = tp.mean(col('a')),
-        ...              max_b = tp.max(col('b')))
+        >>> df.summarize(avg_a = tp.mean(tp.col('a')),
+        ...              max_b = tp.max(tp.col('b')))
         """
         exprs = _as_list(args) + _kwargs_as_exprs(kwargs)
         if _uses_by(by):
-            out = super(tibble, self).group_by(by).agg(exprs)
+            out = self.to_polars().group_by(by).agg(exprs)
         else:
-            out = super(tibble, self).select(exprs)
+            out = self.to_polars().select(exprs)
         return out.pipe(from_polars)
 
     def tail(self, n = 5, *, by = None):
@@ -1224,15 +1226,15 @@ class tibble(pl.DataFrame):
 
         Returns
         -------
-        Grouped tibble
-            A tibble with values grouped by one or more columns.
+        tibble
+            A regular ungrouped tibble
         """
         res = TibbleGroupBy(self, group, maintain_order=True)
         return res
     
     def nest(self, by, *args, **kwargs):
         """
-        creates a nested tibble
+        Creates a nested tibble
 
         Parameters
         ----------
@@ -1272,7 +1274,11 @@ class tibble(pl.DataFrame):
                .agg(**{
                    key : pl.struct(data).map_elements(
                        # lambda cols: from_polars( pl.DataFrame(cols.to_list()) ) )
-                       lambda cols: from_polars(pl.DataFrame({'data':cols}).unnest('data')) )
+                       lambda cols: from_polars(
+                           pl.DataFrame({'data':cols}).unnest('data')
+                       ),
+                       # return_dtype=pl.Object
+                   )
                        # lambda cols: tibble(cols.to_list()) )
                })
                .pipe(from_polars)
@@ -1512,34 +1518,46 @@ class tibble(pl.DataFrame):
         print(f"[Rows: {self.nrow}; Columns {self.ncol}]")
         return None
 
-    def colnames(self, regex='.', type=None, include_factor=True):
+    def colnames(self, regex=None, type=None):
         """
-        Return the names of numeric columns in `self` that match 'regex'
-        type: (str)
-            
-        include_factor: (boolean)
-            When type=string, include or not factors
+        Return the names of columns that match a regular expression,
+        or a variable type
+
+        Parameters
+        ----------
+        regex: string
+            A regular expression. Column names matching the expression
+            are included in the list returned by the function.
         
+        type: str or list
+            A string or list of strings with the types. The types
+            accepted are the same accepted by the tidypolars4sci.where()
+            function. Names of columns matching the types
+            are included in the list returned by the function.
+
+        Returns
+        -------
+        List
+            List with column names
+            
         """
-        cols = self.select(matches(regex)).names
+        assert isinstance(regex, str) or regex is None, (
+            "'regex' must be None or a string")
+
+        assert isinstance(type, str | list) or type is None, (
+            "'type' must be None, a list, or a string")
+
+        cols = []
+
+        if regex:
+            cols += self.select(matches(regex)).names
 
         if type:
-            if type=='numeric':
-                selector = pl.selectors.numeric()
-            if type=='integer':
-                selector = pl.selectors.integer()
-            if type=='string':
-                if include_factor:
-                    selector = pl.selectors.string() | pl.selectors.categorical() | pl.selectors.enum()
-                else:
-                    selector = pl.selectors.string()
-            if type=='factor':
-                selector = pl.selectors.categorical() | pl.selectors.enum()
-            if type=='date':
-                selector = pl.selectors.date()
-            cols_type = self.to_polars().select(selector).columns
+            type = [type] if isinstance(type, str) else type
+            for t in type:
+                cols += self.select(where(t)).names
 
-            cols = [c for c in cols_type  if c in cols]
+        cols = list(set(cols))
 
         return cols
 
@@ -1628,16 +1646,20 @@ class tibble(pl.DataFrame):
         ----------
         vars : str, list, dict, or None, default None
             The variables for which to compute statistics.
-            - If None, all variables in the dataset (as given by `self.names`) are used.
-            - If a string, it is interpreted as a single variable name.
-            - If a list, each element is treated as a variable name.
-            - If a dict, keys are variable names and values are their labels.
+
+            * If None, all variables in the dataset (as given by `self.names`) are used.
+            * If a string, it is interpreted as a single variable name.
+            * If a list, each element is treated as a variable name.
+            * If a dict, keys are variable names and values are their labels.
+
         groups : str, list, dict, or None, default None
             Variable(s) to group by when computing statistics.
-            - If None, overall statistics are computed.
-            - If a string, it is interpreted as a single grouping variable.
-            - If a list, each element is treated as a grouping variable.
-            - If a dict, keys are grouping variable names and values are their labels.
+
+            * If None, overall statistics are computed.
+            * If a string, it is interpreted as a single grouping variable.
+            * If a list, each element is treated as a grouping variable.
+            * If a dict, keys are grouping variable names and values are their labels.
+
         include_categorical : bool, default True
             Whether to include frequency statistics for categorical variables in the output.
         include_type : bool, default False
@@ -1648,12 +1670,14 @@ class tibble(pl.DataFrame):
         tibble
             A tibble containing the descriptive statistics.
             For numerical variables, the statistics include:
-                - N: count of non-missing values
-                - Missing (%): percentage of missing values
-                - Mean: average value
-                - Std.Dev.: standard deviation
-                - Min: minimum value
-                - Max: maximum value
+
+            * N: count of non-missing values
+            * Missing (%): percentage of missing values
+            * Mean: average value
+            * Std.Dev.: standard deviation
+            * Min: minimum value
+            * Max: maximum value
+
             If grouping is specified, these statistics are computed for each group.
             When `include_categorical` is True, frequency statistics for categorical variables are appended
             to the result.
@@ -1748,14 +1772,14 @@ class tibble(pl.DataFrame):
                    )
             return res
 
-    def freq(self, vars=None, groups=None, na_rm=False, na_label=None):
+    def freq(self, vars=None, groups=None, na_rm=False, na_label=None, alpha=0.05, tail='one-sided'):
         """
         Compute frequency table.
 
         Parameters
         ----------
         vars : str, list, or dict
-            Variables to return value frequencies for. 
+            Variables to return their values frequencies. 
             If a dict is provided, the key should be the variable name
             and the values the variable label for the output
 
@@ -1770,6 +1794,12 @@ class tibble(pl.DataFrame):
 
         na_label : str
             Label to use for the NA values
+
+        alpha: float
+            The alpha-level for the confidence interval'
+
+        tail : str[one-sided, two-sided]
+            Use one-sided or two-sided tails for the confidence interval
         
         Returns
         -------
@@ -1848,12 +1878,14 @@ class tibble(pl.DataFrame):
             )
 
         # vars.reverse()
+        alpha_sided = alpha/2 if tail == 'two-sided' else alpha
+        z = qnorm.ppf(1 - alpha_sided, loc=0, scale=1)
         res = (
             res
             .drop('p')
             .mutate(n = as_integer('n'),
-                    low  = pl.col('freq')-1.96*pl.col('stdev'),
-                    high = pl.col('freq')+1.96*pl.col('stdev'))
+                    low  = pl.col('freq') - z*pl.col('stdev'),
+                    high = pl.col('freq') + z*pl.col('stdev'))
             .rename({'n':'N',
                      'stdev':'Std.Dev.',
                      'freq':'Freq'}, tolower=False)
@@ -2100,7 +2132,7 @@ class tibble(pl.DataFrame):
 
 
         home_dir = os.path.expanduser("~")
-        print(f"Save at: {"~"+folder.replace(home_dir, '')}") if not silently else None
+        print(f"Save at: {'~'+folder.replace(home_dir, '')}") if not silently else None
         
     def to_excel(self, *args, **kws):
         """
@@ -2768,11 +2800,12 @@ class tibble(pl.DataFrame):
         self.__class__ = pl.DataFrame
         return self
 
-
 class TibbleGroupBy(pl.dataframe.group_by.GroupBy):
 
     def __init__(self, df, by, *args, **kwargs):
         assert isinstance(by, str) or isinstance(by, list), "Use list or string to group by."
+        if "predicates" in inspect.signature(pl.dataframe.group_by.GroupBy.__init__).parameters:
+            kwargs.setdefault("predicates", None)
         super().__init__(df, by, *args, **kwargs)
         self.df = df
         self.by = by if isinstance(by, list) else [by]
@@ -2790,6 +2823,10 @@ class TibbleGroupBy(pl.dataframe.group_by.GroupBy):
         return out
 
     def summarize(self, *args, **kwargs):
+        out = self.map_groups(lambda x: from_polars(x).summarise(by=self.by, *args, **kwargs))
+        return out
+
+    def summarise(self, *args, **kwargs):
         out = self.map_groups(lambda x: from_polars(x).summarise(by=self.by, *args, **kwargs))
         return out
 
@@ -2833,31 +2870,40 @@ def from_pandas(df):
     >>> tp.from_pandas(df)
     """
     if isinstance(df, pd.DataFrame):
+        # First: detect problematic columns
+        problematic_columns = []
+        for column in df.columns:
+            try:
+                # Try converting this single column via Polars
+                _ = pl.from_pandas(df[[column]])
+            except Exception as col_error:
+                print(f"Note: Column '{column}' caused an error: {col_error}")
+                problematic_columns.append(column)
+
+        # Second: coerce only problematic columns to string
+        if problematic_columns:
+            print("Converting problematic columns to string:", problematic_columns)
+            for column in problematic_columns:
+                df[column] = df[column].astype("string")
+
+        # Finally: convert the (possibly adjusted) DataFrame once
         try:
-            # Try to convert directly
             df = from_polars(pl.from_pandas(df))
         except Exception as e:
-            print(f"Error during conversion: {e}")
-            print("Identifying problematic columns...")
+            # Last-resort fallback: convert everything to string
+            print(f"Error during full-frame conversion even after fixes: {e}")
+            print("Falling back to converting all columns to string.")
+            df = from_polars(pl.from_pandas(df.astype("string")))
 
-            # Identify problematic columns by attempting individual conversions
-            problematic_columns = []
-            for column in df.columns:
-                try:
-                    pl.from_pandas(df[[column]])
-                except Exception as col_error:
-                    print(f"Column '{column}' caused an error: {col_error}")
-                    problematic_columns.append(column)
-
-            # Convert problematic columns to string type
-            for column in problematic_columns:
-                df[column] = df[column].astype(str)
     elif isinstance(df, tibble):
+        # already a tibble, nothing to do
         pass
     elif isinstance(df, pl.DataFrame):
+        # convert directly from Polars tibble
         df = from_polars(df)
     else:
         df = None
+
     return df
     
 _allowed_methods = [
@@ -2929,7 +2975,6 @@ _polars_methods = [
     'with_column_renamed',
     'with_columns'
     ]
-
 
 def __get_accepted_output_formats__(_print=False):
     ACCEPTED_FILES = {
