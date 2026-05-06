@@ -7,7 +7,7 @@ __all__ = [
     # Type conversion
     "as_boolean", "as_character", "as_categorical", "as_factor",
     "as_float", "as_integer", "as_logical", "as_string", "cast",
-    'as_type'
+    'as_type', "as_numeric"
     ]
 
 
@@ -69,6 +69,22 @@ def as_factor(x, levels = None):
     return x
 
 def as_float(x):
+    """
+    Convert to float. Defaults to Float64.
+
+    Parameters
+    ----------
+    x : Expr, Series
+        Column to operate on
+
+    Examples
+    --------
+    >>> df.mutate(float_x = tp.as_float(col('x')))
+    """
+    x = _col_expr(x)
+    return x.cast(pl.Float64)
+
+def as_numeric(x):
     """
     Convert to float. Defaults to Float64.
 

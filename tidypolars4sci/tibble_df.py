@@ -1504,7 +1504,8 @@ class tibble(pl.DataFrame):
             missings_perc = str(int(100*missings/self.nrow))+"%"
             # 
             vals = str(df[col].values)
-            vals = vals[:length_head] + (vals[length_head+1:], '...')[len(vals) > length_head]
+            if len(vals) > length_head:
+                vals = vals[:length_head] + '...'
             # 
             print(f"{col:>{length_col}.{length_col}s} "+
                   f"{'<'+dtype+'>':{length_type}.{length_type}s}"+
@@ -1731,11 +1732,18 @@ class tibble(pl.DataFrame):
         vars_cat = {var:label for var, label in vars.items() if
                     not self.to_polars().schema[var].is_numeric()}
 
+        data_num = self
+        if vars_num:
+            used_vars = list(vars_num.keys())
+            if groups is not None:
+                used_vars += list(groups.keys())
+            data_num = self.drop_null(*used_vars)
+
         # compute statistics for numerical variables
         if groups is None:
-            res = self.__descriptive_statistics__(self, vars_num)
+            res = self.__descriptive_statistics__(data_num, vars_num)
         else:
-            res = (self
+            res = (data_num
                    .select(vars_num | groups)
                    .nest(list(groups.values()))
                    .mutate(summary = map(['data'], lambda col:
@@ -1745,7 +1753,7 @@ class tibble(pl.DataFrame):
                    .unnest('summary')
                    )
 
-        n = self.nrow
+        n = data_num.nrow
         res = (res
                .mutate(null_count = 100*pl.col("null_count")/n,
                        count = as_integer('count'))
