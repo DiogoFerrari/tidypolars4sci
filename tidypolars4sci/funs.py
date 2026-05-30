@@ -222,7 +222,7 @@ def case_when(*args, _default = None):
     expr = expr.otherwise(_default)
     return expr
 
-def map(cols, _fun):
+def map(cols, _fun, return_dtype=None):
     """
     Apply function by row
 
@@ -234,11 +234,18 @@ def map(cols, _fun):
     _fun : a function
         The function to apply to the columns. The function is applied
         to each row separately
+
+    return_dtype : Polars data type, optional
+        Data type returned by the function. If omitted, Polars infers
+        the type from the first non-null result.
     
 
     """
-    # map_groups give a list of lists. I flatten it so that _fun can refer to the list of
-    # columns (cols) simply by index
-    flatten = lambda cols: [item for series in cols for item in list(series)]
-    res = pl.map_groups(cols, lambda cols: _fun(flatten(cols))).over(pl.int_range(pl.len()))
+    cols = _as_list(cols)
+
+    # Preserve the public API where _fun receives a list ordered like cols.
+    res = pl.struct(cols).map_elements(
+        lambda row: _fun(list(row.values())),
+        return_dtype=return_dtype
+    )
     return res

@@ -1,7 +1,10 @@
-import tidypolars as tp
-from tidypolars import col
+import tidypolars4sci as tp
+from tidypolars4sci import col
+import inspect
+import pandas as pd
 import polars as pl
-from tidypolars.utils import _repeat
+import pytest
+from tidypolars4sci.utils import _repeat
 
 def test_arrange1():
     """Can arrange ascending"""
@@ -485,3 +488,279 @@ def test_funs_in_a_row():
     df.tail()
     df.arrange('x', 'y')
     assert True, "Functions in a row failed"
+
+
+_TESTED_TIBBLE_METHODS = {
+    "arrange", "bind_cols", "bind_rows", "clone", "count", "crossing",
+    "distinct", "drop", "drop_null", "equals", "fill", "filter",
+    "full_join", "glimpse", "group_by", "head", "inner_join", "iterrows",
+    "left_join", "mutate", "names", "ncol", "nest", "nrow",
+    "pivot_longer", "pivot_wider", "print", "pull", "relevel",
+    "relocate", "rename", "replace", "replace_null", "save_data",
+    "select", "separate", "set_names", "slice", "slice_head",
+    "slice_tail", "summarise", "summarize", "tail", "tab", "to_csv",
+    "to_dict", "to_dta", "to_excel", "to_latex", "to_pandas",
+    "to_parquet", "to_polars", "unite", "unnest",
+    "colnames", "descriptive_statistics", "freq",
+}
+
+
+def test_all_public_tibble_methods_are_covered():
+    public_methods = {
+        name for name, member in tp.tibble.__dict__.items()
+        if not name.startswith("_")
+        and (inspect.isfunction(member) or isinstance(member, property))
+    }
+    assert public_methods - _TESTED_TIBBLE_METHODS == set()
+
+
+def test_equals_checks_null_equality_option():
+    df1 = tp.tibble(x=[1, None])
+    df2 = tp.tibble(x=[1, None])
+    assert df1.equals(df2)
+    assert not df1.equals(df2, null_equal=False)
+
+
+def test_distinct_keep_all_false():
+    df = tp.tibble(x=["a", "a", "b"], y=[1, 2, 3])
+    actual = df.distinct("x", keep_all=False).arrange("x")
+    expected = tp.tibble(x=["a", "b"])
+    assert actual.equals(expected)
+
+
+def test_head_and_tail_aliases():
+    df = tp.tibble(x=range(4), group=["a", "a", "b", "b"])
+    assert df.head(2).equals(tp.tibble(x=[0, 1], group=["a", "a"]))
+    assert df.tail(2).equals(tp.tibble(x=[2, 3], group=["b", "b"]))
+    actual = df.head(1, by="group").arrange("group")
+    expected = tp.tibble(x=[0, 2], group=["a", "b"])
+    assert actual.equals(expected)
+
+
+def test_fill_directions_and_grouping():
+    df = tp.tibble(group=["a", "a", "b", "b"], x=[None, 1, None, 2])
+    actual = df.fill("x", direction="up", by="group").arrange("group", "x")
+    expected = tp.tibble(group=["a", "a", "b", "b"], x=[1, 1, 2, 2])
+    assert actual.equals(expected)
+
+    df2 = tp.tibble(x=[None, 1, None])
+    assert df2.fill("x", direction="downup").equals(tp.tibble(x=[1, 1, 1]))
+
+
+def test_join_with_explicit_keys_and_suffix():
+    df1 = tp.tibble(left_id=[1, 2], value=["left-a", "left-b"])
+    df2 = tp.tibble(right_id=[2, 3], value=["right-b", "right-c"])
+    actual = df1.inner_join(
+        df2,
+        left_on="left_id",
+        right_on="right_id",
+        suffix="_other",
+    )
+    expected = tp.tibble(left_id=[2], value=["left-b"], value_other=["right-b"])
+    assert actual.equals(expected)
+
+
+def test_pivot_longer_custom_names_and_pull_default():
+    df = tp.tibble(id=[1, 2], a=[10, 20], b=[30, 40])
+    actual = df.pivot_longer(["a", "b"], names_to="metric", values_to="amount")
+    expected = tp.tibble(
+        id=[1, 2, 1, 2],
+        metric=["a", "a", "b", "b"],
+        amount=[10, 20, 30, 40],
+    )
+    assert actual.equals(expected)
+    assert actual.pull().equals(actual.pull("amount"))
+
+
+def test_relevel_preserves_ordered_factor_in_pandas():
+    df = tp.tibble(x=["a", "b", "c", "a"])
+    actual = df.relevel("x", "b")
+    assert actual.pull("x").cat.get_categories().to_list()[0] == "b"
+
+    pdf = actual.to_pandas()
+    assert isinstance(pdf, pd.DataFrame)
+    assert list(pdf["x"].cat.categories)[0] == "b"
+    assert pdf["x"].cat.ordered
+
+
+def test_rename_regex_and_tolower():
+    df = tp.tibble(ABC=[1], DEF=[2])
+    actual = df.rename({"^A": "x_"}, regex=True).rename(tolower=True)
+    expected = tp.tibble({"x_bc": [1], "def": [2]})
+    assert actual.equals(expected)
+
+
+def test_replace_null_scalar_values():
+    df = tp.tibble(name=["a", None], score=[None, 2], other=[None, 3.5])
+    actual = df.replace_null("missing").replace_null(0)
+    expected = tp.tibble(name=["a", "missing"], score=[0, 2], other=[0.0, 3.5])
+    assert actual.equals(expected)
+
+
+def test_select_dict_set_and_selector():
+    df = tp.tibble(a=[1], b=[2], label=["x"])
+    assert df.select({"a": "alpha"}, {"b"}).equals(tp.tibble(alpha=[1], b=[2]))
+    assert df.select(pl.selectors.numeric()).equals(tp.tibble(a=[1], b=[2]))
+
+
+def test_separate_and_unite_keep_source_columns():
+    df = tp.tibble(x=["a-1", "b-2"], y=["z", "z"])
+    separated = df.separate("x", into=["letter", "number"], sep="-", remove=False)
+    assert separated.equals(
+        tp.tibble(x=["a-1", "b-2"], y=["z", "z"], letter=["a", "b"], number=["1", "2"])
+    )
+
+    united = separated.unite("joined", ["letter", "number"], sep=":", remove=False)
+    assert united.select("joined", "letter", "number").equals(
+        tp.tibble(joined=["a:1", "b:2"], letter=["a", "b"], number=["1", "2"])
+    )
+
+
+def test_group_by_returns_grouped_tibble():
+    grouped = tp.tibble(group=["a", "a", "b"], x=[1, 2, 3]).group_by("group")
+    assert isinstance(grouped, tp.TibbleGroupBy)
+    actual = grouped.summarize(total=col("x").sum()).arrange("group")
+    expected = tp.tibble(group=["a", "b"], total=[3, 3])
+    assert actual.equals(expected)
+
+
+def test_nest_creates_tibble_objects_and_unnest_round_trips():
+    df = tp.tibble(group=["a", "a", "b"], x=[1, 2, 3], y=["u", "v", "w"])
+    nested = df.nest("group").arrange("group")
+
+    assert nested.names == ["group", "data"]
+    assert nested.pull("data").dtype == pl.Object
+    assert isinstance(nested.pull("data")[0], tp.tibble)
+    assert nested.pull("data")[0].equals(tp.tibble(x=[1, 2], y=["u", "v"]))
+
+    actual = nested.unnest("data").arrange("group", "x")
+    assert actual.equals(df.arrange("group", "x"))
+
+
+def test_nest_string_by_does_not_drop_substring_columns():
+    df = tp.tibble(id=[1, 1], i=[10, 20], value=["a", "b"])
+    nested = df.nest("id")
+    assert nested.pull("data")[0].names == ["i", "value"]
+
+
+def test_nest_key_data_and_names_sep():
+    df = tp.tibble(id=[1, 1], data_x=[10, 20], data_y=["a", "b"], z=[0, 0])
+    nested = df.nest("id", data=["data_x", "data_y"], key="data", names_sep="_")
+
+    assert nested.names == ["id", "data"]
+    assert nested.pull("data")[0].equals(tp.tibble(x=[10, 20], y=["a", "b"]))
+
+
+def test_nest_multiple_group_columns():
+    df = tp.tibble(group=["a", "a", "a"], subgroup=[1, 1, 2], x=[10, 20, 30])
+    actual = df.nest(["group", "subgroup"], key="rows").arrange("subgroup")
+
+    assert actual.names == ["group", "subgroup", "rows"]
+    assert actual.pull("rows")[0].equals(tp.tibble(x=[10, 20]))
+    assert actual.pull("rows")[1].equals(tp.tibble(x=[30]))
+
+
+def test_crossing_expands_all_combinations():
+    df = tp.tibble(id=[1, 2])
+    actual = df.crossing(letter=["a", "b"]).arrange("id", "letter")
+    expected = tp.tibble(id=[1, 1, 2, 2], letter=["a", "b", "a", "b"])
+    assert actual.equals(expected)
+
+
+def test_colnames_regex_and_type():
+    df = tp.tibble(score_1=[1], score_2=[2.0], label=["x"])
+    assert set(df.colnames(regex="score")) == {"score_1", "score_2"}
+    assert set(df.colnames(type="numeric")) == {"score_1", "score_2"}
+
+
+def test_iterrows_yields_named_rows():
+    rows = list(tp.tibble(x=[1, 2], y=["a", "b"]).iterrows())
+    assert rows == [{"x": 1, "y": "a"}, {"x": 2, "y": "b"}]
+
+
+def test_descriptive_statistics_includes_categorical_rows_and_type():
+    df = tp.tibble(score=[1, 2, None], group=["a", "a", "b"])
+    actual = df.descriptive_statistics(
+        vars=["score", "group"],
+        include_type=True,
+    )
+
+    assert {"Variable", "N", "Mean", "Type"}.issubset(set(actual.names))
+    assert set(actual.pull("Type").to_list()) == {"Num", "Cat"}
+    assert "group (a)" in actual.pull("Variable").to_list()
+
+
+def test_freq_supports_weights():
+    df = tp.tibble(choice=["yes", "no", "yes"], weight=[2.0, 1.0, 3.0])
+    actual = df.freq("choice", weights="weight").arrange("choice")
+
+    assert actual.pull("choice").to_list() == ["no", "yes"]
+    assert actual.pull("N").to_list() == [1, 2]
+    assert [round(x, 2) for x in actual.pull("Freq").to_list()] == [16.67, 83.33]
+
+
+def test_tab_returns_contingency_table():
+    df = tp.tibble(row=["a", "a", "b", "b"], column=["x", "y", "x", "x"])
+    actual = df.tab("row", "column", stat="both")
+
+    assert actual.names == ["row", "x", "y", "Total"]
+    assert actual.filter(col("row") == "a").pull("x")[0] == "25.0 % (1)"
+    assert actual.filter(col("row") == "Total").pull("Total")[0] == "100.0 % (4)"
+
+
+def test_to_dict_as_lists():
+    df = tp.tibble(x=[1, 2], y=["a", "b"])
+    assert df.to_dict(as_series=False) == {"x": [1, 2], "y": ["a", "b"]}
+
+
+def test_to_csv_writes_file(tmp_path):
+    df = tp.tibble(x=[1, 2], y=["a", "b"])
+    base = tmp_path / "data"
+    df.to_csv(fn=str(base), ext="csv", silently=True, separator="|")
+
+    assert (tmp_path / "data.csv").read_text().splitlines() == ["x|y", "1|a", "2|b"]
+
+
+def test_to_parquet_writes_file(tmp_path):
+    df = tp.tibble(x=[1, 2], y=["a", "b"])
+    base = tmp_path / "data"
+    df.to_parquet(fn=str(base), ext="parquet", silently=True)
+
+    actual = tp.from_polars(pl.read_parquet(tmp_path / "data.parquet"))
+    assert actual.equals(df)
+
+
+def test_to_dta_writes_file(tmp_path):
+    df = tp.tibble(x=[1, 2], y=["a", "b"])
+    base = tmp_path / "data"
+    df.to_dta(fn=str(base), ext="dta", silently=True, write_index=False)
+
+    assert (tmp_path / "data.dta").exists()
+
+
+def test_to_excel_writes_file(tmp_path):
+    pytest.importorskip("xlsxwriter")
+    df = tp.tibble(x=[1, 2], y=["a", "b"])
+    base = tmp_path / "data"
+    df.to_excel(fn=str(base), ext="xlsx", silently=True)
+
+    assert (tmp_path / "data.xlsx").exists()
+
+
+def test_to_latex_returns_string_and_writes_file(tmp_path):
+    df = tp.tibble(x=[1, 2], y=["a", "b"])
+    latex = df.to_latex(caption="Caption", label="tab:test", scale=False)
+    assert "\\begin{table}" in latex
+    assert "\\caption{Caption}" in latex
+
+    out = tmp_path / "table.tex"
+    assert df.to_latex(fn=str(out), scale=False) is None
+    assert "\\begin{table}" in out.read_text()
+
+
+def test_save_data_writes_requested_copies(tmp_path):
+    df = tp.tibble(x=[1, 2], y=["a", "b"])
+    df.save_data(str(tmp_path / "data.csv"), copies=["parquet"], silently=True)
+
+    assert (tmp_path / "data.csv").exists()
+    assert (tmp_path / "data.parquet").exists()

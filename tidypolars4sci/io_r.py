@@ -127,6 +127,12 @@ _COERCE_CHAR_TO_FACTOR = R(
           lbl  <- attr(x, "label",  exact = TRUE)
           vlbl <- attr(x, "labels", exact = TRUE)
 
+          if (inherits(x, "haven_labelled") || inherits(x, "vctrs_vctr")) {
+            x <- unclass(x)
+            attr(x, "label") <- NULL
+            attr(x, "labels") <- NULL
+          }
+
           xf <- as.factor(x)
 
           if (!is.null(lbl))  attr(xf, "label")  <- lbl
@@ -304,4 +310,3 @@ def load_r(
         )
 
     return data, labels
-

@@ -36,6 +36,9 @@ class tibble(pl.DataFrame):
     A data frame object that provides methods familiar to R tidyverse users.
     """
     def __init__(self,  *args, **kwargs):
+        if kwargs and not args:
+            args = (kwargs,)
+            kwargs = {}
         super().__init__(*args, **kwargs)
 
     @property
@@ -229,7 +232,7 @@ class tibble(pl.DataFrame):
 
         return out
 
-    def distinct(self, *args, keep_all = True):
+    def distinct(self, *args, keep_all = False):
         """
         Select distinct/unique rows
 
@@ -598,10 +601,11 @@ class tibble(pl.DataFrame):
         """
         if (left_on == None) & (right_on == None) & (on == None):
             on = list(set(self.names) & set(df.names))
-        return super().join(df, on, 'outer',
+        return super().join(df, on, 'full',
                             left_on = left_on,
                             right_on= right_on,
-                            suffix= suffix).pipe(from_polars)
+                            suffix= suffix,
+                            coalesce=True).pipe(from_polars)
 
     def pivot_longer(self,
                      cols = None,
@@ -680,17 +684,18 @@ class tibble(pl.DataFrame):
         """
         if id_cols == None:
             df_cols = pl.Series(self.names)
-            from_cols = pl.Series(self.select(names_from, values_from).names)
+            from_cols = self.select(names_from, values_from).names
             id_cols = df_cols.filter(df_cols.is_in(from_cols).not_()).to_list()
 
         no_id = len(id_cols) == 0
 
+        df_pivot = self.to_polars()
         if no_id:
             id_cols = '___id__'
-            self = self.mutate(___id__ = pl.lit(1))
+            df_pivot = self.mutate(___id__ = pl.lit(1)).to_polars()
 
         out = (
-            super()
+            df_pivot
             .pivot(index=id_cols, on=names_from, values=values_from, aggregate_function=values_fn)
             .pipe(from_polars)
         )
@@ -805,7 +810,7 @@ class tibble(pl.DataFrame):
 
         return self.select(final_order)
    
-    def rename(self, columns=None, regex=False, tolower=False, strict=False):
+    def rename(self, columns=None, *args, regex=False, tolower=False, strict=False, **kwargs):
         """
         Rename columns
 
@@ -832,6 +837,19 @@ class tibble(pl.DataFrame):
         >>> df = tp.tibble({'x': range(3), 't': range(3), 'z': ['a', 'a', 'b']})
         >>> df.rename({'x': 'new_x'}) 
         """
+        if kwargs:
+            columns = (columns or {}) | {old: new for new, old in kwargs.items()}
+
+        if columns is not None and not isinstance(columns, dict):
+            dplyr_args = [columns] + list(args)
+            assert len(dplyr_args) % 2 == 0, (
+                "String rename arguments must be new/old name pairs."
+            )
+            columns = {
+                old: new
+                for new, old in zip(dplyr_args[0::2], dplyr_args[1::2])
+            }
+
         assert isinstance(columns, dict) or columns is None,\
             "'columns' must be a dictionary or None."
 
@@ -1265,47 +1283,29 @@ class tibble(pl.DataFrame):
             nested tibbles
 
         """
+        by = _as_list(by)
         key  = kwargs.get("key", 'data')
         data = kwargs.get("data", [c for c in self.names if c not in by])
         names_sep = kwargs.get("names_sep", None)
 
-        out = (self
-               .group_by(by)
-               .agg(**{
-                   key : pl.struct(data).map_elements(
-                       # lambda cols: from_polars( pl.DataFrame(cols.to_list()) ) )
-                       lambda cols: from_polars(
-                           pl.DataFrame({'data':cols}).unnest('data')
-                       ),
-                       # return_dtype=pl.Object
-                   )
-                       # lambda cols: tibble(cols.to_list()) )
-               })
-               .pipe(from_polars)
-               )
-        # to keep enum order in the nested data
-        # enum_columns = [col for col in self.select(data).names
-        #                 if self.pull(col).dtype == pl.Enum]
-        # if enum_columns:
-        #     for col in enum_columns:
-        #         cats = self.pull(col).cat.get_categories().to_list()
-        #         print(cats)
-        #         out = out.mutate(**{key : map([key], lambda row:
-        #                                       row[0].mutate(col = as_factor(col, cats) )
-        #                                       }
-        # # to keep factors
-        # factors = [col for col in self.select(data).names
-        #                 if self.pull(col).dtype == pl.Categorical]
-        # if factors:
-        #     for col in factors:
-        #         out = out.mutate(**{col : as_factor(col)})
-
-
+        rename_inner = None
         if names_sep is not None:
-            new_names = {col:f"{col}_{names_sep}" for col in data}
-            print(new_names)
-            out = out.mutate(**{key:col(key).map_elements(lambda row: row.rename(new_names))})
-        return out
+            prefix = f"{key}{names_sep}"
+            rename_inner = {
+                name: name.removeprefix(prefix)
+                for name in data
+            }
+
+        rows = []
+        for group_df in self.to_polars().partition_by(by, maintain_order=True):
+            nested_df = from_polars(group_df.select(data))
+            if rename_inner is not None:
+                nested_df = nested_df.rename(rename_inner)
+            row = {name: group_df.get_column(name)[0] for name in by}
+            row[key] = nested_df
+            rows.append(row)
+
+        return tibble(rows)
 
     def unnest(self, col):
         """
@@ -1743,15 +1743,20 @@ class tibble(pl.DataFrame):
         if groups is None:
             res = self.__descriptive_statistics__(data_num, vars_num)
         else:
-            res = (data_num
-                   .select(vars_num | groups)
-                   .nest(list(groups.values()))
-                   .mutate(summary = map(['data'], lambda col:
-                                         self.__descriptive_statistics__(col[0],
-                                                                         vars=vars_num)))
-                   .drop('data')
-                   .unnest('summary')
-                   )
+            res = tibble()
+            nested = (
+                data_num
+                .select(vars_num | groups)
+                .nest(list(groups.values()))
+            )
+            for row in nested.iterrows():
+                group_values = {group: row[group] for group in groups.values()}
+                summary = (
+                    self.__descriptive_statistics__(row['data'], vars=vars_num)
+                    .mutate(**group_values)
+                    .relocate(list(groups.values()), before='Variable')
+                )
+                res = res.bind_rows(summary)
 
         n = data_num.nrow
         res = (res
@@ -2325,7 +2330,7 @@ class tibble(pl.DataFrame):
             Name of the variable in the data with values to group
             the rows by.
 
-        group_title_align str, default='l'
+        group_title_align : str, default='l'
             Alignment of the title of each row group
 
         index : bool, default=False

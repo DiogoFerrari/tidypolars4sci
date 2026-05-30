@@ -4,14 +4,20 @@ from .utils import _filter_kwargs_for, _expand_to_full_path_or_url
 import polars as pl
 import copy
 import re, os
+import builtins
+import textwrap
 import pandas as pd
 import pyreadstat
 # from pyreadr import read_r
 from dataclasses import dataclass
 from typing import Callable, List, Any, Dict, Optional, Tuple
 # google spreadsheet
-import gspread
-from google.oauth2.service_account import Credentials
+try:
+    import gspread
+    from google.oauth2.service_account import Credentials
+except ImportError:
+    gspread = None
+    Credentials = None
 
 __all__ = [
     "read_data",
@@ -52,6 +58,106 @@ class DATA_LABELS:
             "variables": self.variables,
             "values": self.values,
         }
+
+    def search(self, regex, what='variables', name=False, label=True,
+               print=True, collect=False, case_sensitive=False,
+               full_label=True, name_trunc=12, label_trunc=68):
+        """
+        Search variable or value labels with a regular expression.
+
+        Parameters
+        ----------
+        regex : str
+            Regular expression to search for.
+        what : str, default 'variables'
+            Which label dictionary to search: 'variables' or 'values'.
+        name : bool, default False
+            If True, search variable names.
+        label : bool, default True
+            If True, search variable labels or value labels.
+        print : bool, default True
+            If True, print matching entries in fixed-width columns.
+        collect : bool, default False
+            If True, return a dictionary with the matches; otherwise return None.
+        case_sensitive : bool, default False
+            If True, match regex using case-sensitive search.
+        full_label : bool, default True
+            If True, wrap and print full labels. If False, truncate labels.
+        name_trunc : int, default 12
+            Width of the printed variable-name column.
+        label_trunc : int, default 68
+            Width of the printed label column, or wrap width if full_label=True.
+
+        Returns
+        -------
+        dict
+            Matching entries with the same shape as the searched dictionary.
+        """
+        assert name or label, "At least one of 'name' or 'label' must be True."
+        assert what in ['variables', 'variable', 'values', 'value'],\
+            "'what' must be 'variables' or 'values'."
+        assert name_trunc > 0, "'name_trunc' must be positive."
+        assert label_trunc > 0, "'label_trunc' must be positive."
+
+        flags = 0 if case_sensitive else re.IGNORECASE
+        pattern = re.compile(regex, flags=flags)
+        matches = lambda x: bool(pattern.search(str(x)))
+
+        def print_match(var, var_label):
+            var_text = str(var)[:name_trunc]
+            label_text = str(var_label)
+            prefix = f"{var_text:<{name_trunc}} : "
+
+            if not full_label:
+                builtins.print(f"{prefix}{label_text[:label_trunc]:<{label_trunc}}")
+                return
+
+            lines = textwrap.wrap(label_text, width=label_trunc) or [""]
+            builtins.print(f"{prefix}{lines[0]}")
+            for line in lines[1:]:
+                builtins.print(f"{' ' * len(prefix)}{line}")
+
+        if what in ['variables', 'variable']:
+            out = {
+                var: var_label
+                for var, var_label in self.variables.items()
+                if (name and matches(var)) or (label and matches(var_label))
+            }
+
+        else:
+            out = {}
+            for var, value_labels in self.values.items():
+                if name and matches(var):
+                    out[var] = value_labels
+                    continue
+
+                if not isinstance(value_labels, dict):
+                    if label and matches(value_labels):
+                        out[var] = value_labels
+                    continue
+
+                hits = {
+                    value: value_label
+                    for value, value_label in value_labels.items()
+                    if label and matches(value_label)
+                }
+                if hits:
+                    out[var] = hits
+
+        if print:
+            if what in ['variables', 'variable']:
+                for var, var_label in out.items():
+                    print_match(var, var_label)
+            else:
+                for var, value_labels in out.items():
+                    if isinstance(value_labels, dict):
+                        for value, value_label in value_labels.items():
+                            print_match(var, f"{value}: {value_label}")
+                    else:
+                        print_match(var, value_labels)
+            builtins.print('')
+
+        return out if collect else None
 
 class read_data():
     '''
@@ -336,6 +442,12 @@ class read_data():
         return df, labels
 
     def read_gspread(**kws):
+        if gspread is None or Credentials is None:
+            raise ImportError(
+                "Reading Google Sheets requires the optional dependencies "
+                "'gspread' and 'google-auth'."
+            )
+
         assert kws.get("credentials", None),"A json file with google spreadsheet API"+\
             "credentials must be provided."
         assert kws.get("url", None),"The google spreadsheet URL must be provided."

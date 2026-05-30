@@ -1,5 +1,6 @@
 import tidypolars as tp
 from tidypolars import col
+import polars as pl
 import polars.selectors as cs
 import math
 
@@ -133,6 +134,32 @@ def test_if_else():
     actual = df.mutate(case_x = tp.if_else(col('x') < 2, 1, 0))
     expected = tp.tibble(x = range(1, 4), case_x = [1, 0, 0])
     assert actual.equals(expected), "if_else failed"
+
+def test_map():
+    """Can use row-wise map without explicitly setting output dtype"""
+    def stars(pvalue):
+        return '***' if pvalue[0] < 0.01 else ('*' if pvalue[0] < 0.05 else '')
+
+    df = tp.tibble({'a': [1, 10, 100], 'b': [2, -20, 100], 'pvalue': [0.001, 0.02, 0.2]})
+    actual = df.mutate(
+        min_ab = tp.map(['a', 'b'], lambda cols: min(cols)),
+        sig = tp.map(['pvalue'], lambda p: stars(*[p]))
+    )
+    expected = tp.tibble({
+        'a': [1, 10, 100],
+        'b': [2, -20, 100],
+        'pvalue': [0.001, 0.02, 0.2],
+        'min_ab': [1, -20, 100],
+        'sig': ['***', '*', '']
+    })
+    assert actual.equals(expected), "map failed"
+
+def test_map_return_dtype():
+    """Can set a return dtype for row-wise map"""
+    df = tp.tibble({'x': [1, 2, 3]})
+    actual = df.mutate(x_chr = tp.map(['x'], lambda row: str(row[0]), return_dtype = pl.String))
+    expected = tp.tibble({'x': [1, 2, 3], 'x_chr': ["1", "2", "3"]})
+    assert actual.equals(expected), "map return_dtype failed"
 
 def test_is_predicates():
     """Can use is predicates"""
