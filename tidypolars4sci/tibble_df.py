@@ -2373,7 +2373,11 @@ class tibble(pl.DataFrame):
             "'footnote' must be a dictionary"
 
         # remove \n in the table cels .... (see below)
-        char_cols = self.to_polars().select(~cs.numeric()).columns
+        # cast categorical/enum to string first, str.replace_all only works on strings
+        cat_cols = self.to_polars().select(cs.categorical() | cs.enum()).columns
+        if cat_cols:
+            self = self.mutate(across(cat_cols, lambda col: col.cast(pl.String)))
+        char_cols = self.to_polars().select(cs.string()).columns
         if char_cols:
             self = self.mutate(across(char_cols, lambda col: str_replace_all(col, '\n', NEW_LINE_MARKER)))
 
