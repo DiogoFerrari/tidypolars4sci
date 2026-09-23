@@ -1564,6 +1564,23 @@ class tibble(pl.DataFrame):
 
     # Not tidy functions, but useful from pandas/polars 
     # -------------------------------------------------
+    def __replace_expand_ranges__(self, d):
+        if not isinstance(d, dict):
+            return d
+
+        expanded = {}
+        for key, val in d.items():
+            # Recursively process nested dictionaries first
+            val = self.__replace_expand_ranges__(val)
+
+            # Check if the key is a range object
+            if isinstance(key, range):
+                for sub_key in key:
+                    expanded[sub_key] = val
+            else:
+                expanded[key] = val
+        return expanded
+
     def replace(self, rep, regex=False, fill_missing_labels=True):
         """
         Replace method from polars pandas. Replaces values of a column.
@@ -1575,6 +1592,8 @@ class tibble(pl.DataFrame):
                 {<varname>:{<old value>:<new value>, ...}}
             Format to use pandas' replace:
                 {<old value>:<new value>, ...}
+            Range is accepted as key:
+                {<varname>:{range(, ):<new value>, ...}}
 
         regex : bool
             If true, replace using regular expression. It uses pandas
@@ -1595,6 +1614,9 @@ class tibble(pl.DataFrame):
             engine = 'pandas'
         else:
             engine = 'polars'
+
+        # expand rep dict in case range() used as key
+        rep = self.__replace_expand_ranges__(rep)
             
         if engine=='polars':
             out = self.to_polars()
@@ -2200,7 +2222,7 @@ class tibble(pl.DataFrame):
 
 
         home_dir = os.path.expanduser("~")
-        print(f"Save at: {'~'+folder.replace(home_dir, '')}") if not silently else None
+        print(f"Saved at: {'~'+folder.replace(home_dir, '')}") if not silently else None
         
     def to_excel(self, *args, **kws):
         """

@@ -7,7 +7,7 @@ build-backend = "hatchling.build"  # when with internet access
 
 [project]
 name = "tidypolars4sci"
-version = "0.0.1.22"
+version = "0.0.1.23"
 description = "Tidyverse-like functions for python polars with extended functionalities for science."
 authors = [{name = "Diogo Ferrari", email = "diogoferrari@gmail.com"}]
 maintainers = [{name = "Diogo Ferrari", email = "diogoferrari@gmail.com"}]

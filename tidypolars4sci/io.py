@@ -59,26 +59,23 @@ class DATA_LABELS:
             "values": self.values,
         }
 
-    def search(self, regex, what='variables', name=False, label=True,
-               print=True, collect=False, case_sensitive=False,
+    def search(self, regex, include_values=True, out='print', case_sensitive=False,
                full_label=True, name_trunc=12, label_trunc=68):
         """
-        Search variable or value labels with a regular expression.
+        Search variable names, value codes, and labels with a regular expression.
 
         Parameters
         ----------
         regex : str
             Regular expression to search for.
-        what : str, default 'variables'
-            Which label dictionary to search: 'variables' or 'values'.
-        name : bool, default False
-            If True, search variable names.
-        label : bool, default True
-            If True, search variable labels or value labels.
-        print : bool, default True
-            If True, print matching entries in fixed-width columns.
-        collect : bool, default False
-            If True, return a dictionary with the matches; otherwise return None.
+        include_values : bool, default True
+            Also search and display value codes and labels when True.
+            Names and labels are always searched. For values, a matching variable
+            name or label includes all its values; otherwise only matching value
+            codes or value labels are included.
+        out : str, default 'print'
+            'print' prints matches in fixed-width columns and returns None.
+            'dict' returns the matches without printing.
         case_sensitive : bool, default False
             If True, match regex using case-sensitive search.
         full_label : bool, default True
@@ -90,12 +87,14 @@ class DATA_LABELS:
 
         Returns
         -------
-        dict
-            Matching entries with the same shape as the searched dictionary.
+        dict or None
+            For out='dict', matching entries with the same shape as the searched
+            dictionary. With include_values=True, the result has 'variables' and
+            'values' keys containing the respective matches. With False, returns
+            only the variable matches. For out='print', returns None.
         """
-        assert name or label, "At least one of 'name' or 'label' must be True."
-        assert what in ['variables', 'variable', 'values', 'value'],\
-            "'what' must be 'variables' or 'values'."
+        assert isinstance(include_values, bool), "'include_values' must be True or False."
+        assert out in ['print', 'dict'], "'out' must be 'print' or 'dict'."
         assert name_trunc > 0, "'name_trunc' must be positive."
         assert label_trunc > 0, "'label_trunc' must be positive."
 
@@ -103,10 +102,8 @@ class DATA_LABELS:
         pattern = re.compile(regex, flags=flags)
         matches = lambda x: bool(pattern.search(str(x)))
 
-        def print_match(var, var_label):
-            var_text = str(var)[:name_trunc]
-            label_text = str(var_label)
-            prefix = f"{var_text:<{name_trunc}} : "
+        def print_match(prefix, label):
+            label_text = str(label)
 
             if not full_label:
                 builtins.print(f"{prefix}{label_text[:label_trunc]:<{label_trunc}}")
@@ -117,47 +114,57 @@ class DATA_LABELS:
             for line in lines[1:]:
                 builtins.print(f"{' ' * len(prefix)}{line}")
 
-        if what in ['variables', 'variable']:
-            out = {
-                var: var_label
-                for var, var_label in self.variables.items()
-                if (name and matches(var)) or (label and matches(var_label))
-            }
+        variable_hits = {
+            var: var_label
+            for var, var_label in self.variables.items()
+            if matches(var) or matches(var_label)
+        }
+        value_hits = {}
 
-        else:
-            out = {}
+        if include_values:
             for var, value_labels in self.values.items():
-                if name and matches(var):
-                    out[var] = value_labels
+                if matches(var) or matches(self.variables.get(var, var)):
+                    value_hits[var] = value_labels
                     continue
 
                 if not isinstance(value_labels, dict):
-                    if label and matches(value_labels):
-                        out[var] = value_labels
+                    if matches(value_labels):
+                        value_hits[var] = value_labels
                     continue
 
                 hits = {
                     value: value_label
                     for value, value_label in value_labels.items()
-                    if label and matches(value_label)
+                    if matches(value) or matches(value_label)
                 }
                 if hits:
-                    out[var] = hits
+                    value_hits[var] = hits
 
-        if print:
-            if what in ['variables', 'variable']:
-                for var, var_label in out.items():
-                    print_match(var, var_label)
-            else:
-                for var, value_labels in out.items():
+        if out == 'print':
+            # Include a variable heading even when only one of its values matches.
+            variables = dict.fromkeys([*variable_hits, *value_hits])
+            indent = ' ' * (name_trunc + 3)
+            for var in variables:
+                var_text = str(var)[:name_trunc]
+                print_match(f"{var_text:<{name_trunc}} : ",
+                            self.variables.get(var, var))
+                if var in value_hits:
+                    builtins.print(f"{indent}Values:")
+                    value_labels = value_hits[var]
                     if isinstance(value_labels, dict):
                         for value, value_label in value_labels.items():
-                            print_match(var, f"{value}: {value_label}")
+                            print_match(f"{indent}{value}: ", value_label)
                     else:
-                        print_match(var, value_labels)
+                        print_match(indent, value_labels)
             builtins.print('')
+            return None
 
-        return out if collect else None
+        if include_values:
+            return {'variables': variable_hits, 'values': value_hits}
+        return variable_hits
+
+                    
+        
 
 class read_data():
     '''
