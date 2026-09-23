@@ -2045,6 +2045,8 @@ class tibble(pl.DataFrame):
                 res = res.assign(**{str(colp):100*resp[colp]})
         else:
             res = resn.copy()
+        if margins and margins_name in res.columns:
+            res = res[[name for name in res.columns if name != margins_name] + [margins_name]]
         # Group columns using varname as label
         ncat = len(tab[vars_col].unique())
         ngroups = 0 if not groups else len(groups)

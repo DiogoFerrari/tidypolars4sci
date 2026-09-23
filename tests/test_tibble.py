@@ -728,6 +728,26 @@ def test_tab_n_returns_counts(normalize, groups):
     assert actual.to_dict(as_series=False) == expected
 
 
+@pytest.mark.parametrize("stat", ["n", "perc", "both"])
+@pytest.mark.parametrize("margins_name", ["Total", "Overall"])
+def test_tab_grouped_total_column_is_last(stat, margins_name):
+    df = tp.tibble(
+        code=[1.0, 1.0, 2.0],
+        party=["Democrats", "Democrats", "Republicans"],
+        response=[1.0, 1.0, 0.0],
+    )
+    actual = df.tab("party", "response", groups="code", stat=stat,
+                    margins_name=margins_name)
+
+    assert actual.names == ["code", "party", "1.0", "0.0", margins_name]
+    expected_totals = {
+        "n": [2, 2, 1, 1],
+        "perc": [100.0] * 4,
+        "both": ["100.0 % (2)"] * 2 + ["100.0 % (1)"] * 2,
+    }
+    assert actual.pull(margins_name).to_list() == expected_totals[stat]
+
+
 def test_tab_perc_returns_percentages():
     df = tp.tibble(row=["a", "a", "b", "b"], column=["x", "y", "x", "x"])
     actual = df.tab("row", "column", stat="perc")
