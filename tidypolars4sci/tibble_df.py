@@ -2044,8 +2044,7 @@ class tibble(pl.DataFrame):
             for colp in colsp:
                 res = res.assign(**{str(colp):100*resp[colp]})
         else:
-            for coln in colsn:
-                res = res.assign(**{str(coln):100*resp[coln]})
+            res = resn.copy()
         # Group columns using varname as label
         ncat = len(tab[vars_col].unique())
         ngroups = 0 if not groups else len(groups)

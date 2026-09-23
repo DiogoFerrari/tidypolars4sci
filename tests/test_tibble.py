@@ -708,6 +708,35 @@ def test_tab_returns_contingency_table():
     assert actual.filter(col("row") == "Total").pull("Total")[0] == "100.0 % (4)"
 
 
+@pytest.mark.parametrize("normalize", ["all", "row", "columns"])
+@pytest.mark.parametrize("groups", [None, "group"])
+def test_tab_n_returns_counts(normalize, groups):
+    df = tp.tibble(
+        row=["a", "a", "b", "b"] * 2,
+        column=["x", "y", "x", "x"] * 2,
+        group=["g1"] * 4 + ["g2"] * 4,
+    )
+    actual = df.tab("row", "column", stat="n", normalize=normalize, groups=groups)
+    expected = {"row": ["a", "b", "Total"], "x": [1, 2, 3],
+                "y": [1, 0, 1], "Total": [2, 2, 4]}
+    if groups:
+        expected = {"group": ["g1"] * 3 + ["g2"] * 3,
+                    **{key: values * 2 for key, values in expected.items()}}
+    else:
+        expected = {key: values if key == "row" else [2 * n for n in values]
+                    for key, values in expected.items()}
+    assert actual.to_dict(as_series=False) == expected
+
+
+def test_tab_perc_returns_percentages():
+    df = tp.tibble(row=["a", "a", "b", "b"], column=["x", "y", "x", "x"])
+    actual = df.tab("row", "column", stat="perc")
+    assert actual.to_dict(as_series=False) == {
+        "row": ["a", "b", "Total"], "x": [25.0, 50.0, 75.0],
+        "y": [25.0, 0.0, 25.0], "Total": [50.0, 50.0, 100.0],
+    }
+
+
 def test_to_dict_as_lists():
     df = tp.tibble(x=[1, 2], y=["a", "b"])
     assert df.to_dict(as_series=False) == {"x": [1, 2], "y": ["a", "b"]}
