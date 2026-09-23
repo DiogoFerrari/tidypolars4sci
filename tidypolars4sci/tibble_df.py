@@ -1503,7 +1503,7 @@ class tibble(pl.DataFrame):
             missings = df[col].isna().sum()
             missings_perc = str(int(100*missings/self.nrow))+"%"
             # 
-            vals = str(df[col].values)
+            vals = str(df[col].to_numpy())
             if len(vals) > length_head:
                 vals = vals[:length_head] + '...'
             # 
