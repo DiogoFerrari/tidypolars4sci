@@ -1471,10 +1471,15 @@ class tibble(pl.DataFrame):
         length_type = np.max([len(header_type)] +
                              [len(col) for col  in
                               df.dtypes.astype(str).values]) + 2
+        def _n_unique(s):
+            try:
+                return len(pd.unique(s))
+            except TypeError:
+                # unhashable values (e.g., nested tibbles, lists)
+                return len({repr(v) for v in s})
+        n_uniques = {col: _n_unique(df[col]) for col in df.columns}
         length_nvalues = np.max([len(header_uniq),
-                                 len(str(np.max(df
-                                                .apply(pd.unique)
-                                                .apply(len))))])
+                                 len(str(np.max([0] + list(n_uniques.values()))))])
         length_missing = np.max([len(header_missing)] +
                                 df.isna().sum().astype(str).apply(len).tolist())
         try:
@@ -1499,11 +1504,21 @@ class tibble(pl.DataFrame):
         # print(hline)
         for col in df.columns:
             dtype = str(df[col].dtype)
-            nvalues = len(df[col].unique())
+            nvalues = n_uniques[col]
             missings = df[col].isna().sum()
             missings_perc = str(int(100*missings/self.nrow))+"%"
             # 
-            vals = str(df[col].to_numpy())
+            is_table = lambda v: isinstance(v, (tibble, pl.DataFrame, pd.DataFrame))
+            if df[col].dtype == object and any(is_table(v) for v in df[col]):
+                # nested tables: show compact summaries instead of full prints
+                vals = '[' + ' '.join(f"<tibble {v.nrow}x{v.ncol}>"
+                                      if isinstance(v, tibble)
+                                      else f"<{type(v).__name__} {v.shape[0]}x{v.shape[1]}>"
+                                      if is_table(v)
+                                      else repr(v)
+                                      for v in df[col]) + ']'
+            else:
+                vals = str(df[col].to_numpy())
             if len(vals) > length_head:
                 vals = vals[:length_head] + '...'
             # 
