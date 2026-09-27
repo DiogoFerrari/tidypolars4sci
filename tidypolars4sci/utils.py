@@ -7,9 +7,13 @@ from pathlib import Path
 from typing import Union
 from urllib.parse import urlparse
 from urllib.request import url2pathname
+from uuid import uuid4
 
 
 __all__ = []
+
+# A private expression input, populated only while evaluating mutate().
+_ROW_NUMBER_COLUMN = '__tidypolars_row_number_' + uuid4().hex
 
 def _list_flatten(l):
     l = [x if isinstance(x, list) else [x] for x in l]
@@ -112,10 +116,31 @@ def _repeat(x, times):
         x = [x]
     return x * times
 
-def _mutate_cols(df, exprs):
+def _mutate_cols(df, exprs, group_number=None):
     for expr in exprs:
-        df = df.with_columns(expr)
+        if _uses_row_number(expr):
+            numbers = (pl.int_range(1, pl.len() + 1) if group_number is None
+                       else pl.lit(group_number, dtype=pl.Int64))
+            df = (df.with_columns(numbers.alias(_ROW_NUMBER_COLUMN))
+                  .with_columns(expr).drop(_ROW_NUMBER_COLUMN))
+        else:
+            df = df.with_columns(expr)
     return df
+
+def _uses_row_number(expr):
+    return isinstance(expr, pl.Expr) and _ROW_NUMBER_COLUMN in expr.meta.root_names()
+
+def _mutate_groups(df, exprs, by):
+    if any(_uses_row_number(expr) for expr in exprs):
+        if df.height == 0:
+            return _mutate_cols(df, exprs)
+        return pl.concat([
+            _mutate_cols(group, exprs, group_number=i)
+            for i, (_, group) in enumerate(
+                df.group_by(by, maintain_order=True), start=1
+            )
+        ])
+    return df.group_by(by).map_groups(lambda group: _mutate_cols(group, exprs))
 
 def _str_to_lit(x):
     if _is_string(x):

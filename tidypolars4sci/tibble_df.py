@@ -5,6 +5,8 @@ from .utils import (_as_list,
                     _col_exprs,
                     _kwargs_as_exprs,
                     _mutate_cols,
+                    _mutate_groups,
+                    _uses_row_number,
                     _uses_by,
                     _filter_kwargs_for,
                     _expand_to_full_path_or_url
@@ -232,7 +234,7 @@ class tibble(pl.DataFrame):
 
         return out
 
-    def distinct(self, *args, keep_all = False):
+    def distinct(self, *args, keep_all = True):
         """
         Select distinct/unique rows
 
@@ -515,7 +517,7 @@ class tibble(pl.DataFrame):
         out = self.to_polars()
 
         if _uses_by(by):
-            out = out.group_by(by).map_groups(lambda x: _mutate_cols(x, exprs))
+            out = _mutate_groups(out, exprs, by)
         else:
             out = _mutate_cols(out, exprs)
             
@@ -2924,8 +2926,10 @@ class TibbleGroupBy(pl.dataframe.group_by.GroupBy):
         return TibbleGroupBy
 
     def mutate(self, *args, **kwargs):
-        out = self.map_groups(lambda x: from_polars(x).mutate(*args, **kwargs))
-        return out
+        exprs = _as_list(args) + _kwargs_as_exprs(kwargs)
+        if any(_uses_row_number(expr) for expr in exprs):
+            return self.df.mutate(*args, by=self.by, **kwargs)
+        return self.map_groups(lambda x: from_polars(x).mutate(*args, **kwargs))
 
     def filter(self, *args, **kwargs):
         out = self.map_groups(lambda x: from_polars(x).filter(*args, **kwargs))

@@ -149,10 +149,12 @@ def test_map():
         'a': [1, 10, 100],
         'b': [2, -20, 100],
         'pvalue': [0.001, 0.02, 0.2],
-        'min_ab': [1, -20, 100],
-        'sig': ['***', '*', '']
+        'min_ab': pl.Series([1, -20, 100], dtype=pl.Object),
+        'sig': pl.Series(['***', '*', ''], dtype=pl.Object)
     })
-    assert actual.equals(expected), "map failed"
+    for name in ['min_ab', 'sig']:
+        assert actual.to_polars()[name].dtype == pl.Object
+        assert actual.to_polars()[name].to_list() == expected.to_polars()[name].to_list()
 
 def test_map_return_dtype():
     """Can set a return dtype for row-wise map"""
@@ -220,7 +222,7 @@ def test_row_number_group():
         df.mutate(group_row_num = tp.row_number(), by = 'x')
         .arrange('x', 'group_row_num')
     )
-    expected = tp.tibble(x = ['a', 'a', 'b'], group_row_num = [1, 2, 1])
+    expected = tp.tibble(x = ['a', 'a', 'b'], group_row_num = [1, 1, 2])
     assert actual.equals(expected), "group row_number failed"
 
 def test_round():
@@ -236,3 +238,37 @@ def test_sqrt():
     actual = df.mutate(x = tp.sqrt('x'))
     expected = tp.tibble(x = [3, 5, 10])
     assert actual.equals(expected), "sqrt failed"
+
+
+def test_map_nested_objects():
+    """Nested tibbles and model objects can be passed between map calls."""
+    class Fit:
+        def __init__(self, formula, data):
+            self.formula = formula
+            self.nobs = data.to_polars().height
+
+    df = tp.tibble(pid=[1, 1, 2], policy_group=['a', 'a', 'b'], Y=[1, 2, 3])
+    actual = df.nest(['pid', 'policy_group']).mutate(
+        formula="Y ~ treat",
+        fit=tp.map(['formula', 'data'], lambda row: Fit(*row)),
+        nobs=tp.map(['fit'], lambda row: row[0].nobs, return_dtype=pl.Int64),
+    )
+    assert actual.to_polars()['nobs'].to_list() == [2, 1]
+    assert [fit.formula for fit in actual.to_polars()['fit']] == ['Y ~ treat', 'Y ~ treat']
+
+
+def test_map_object_inputs_none_result():
+    """A callback returning None must not panic on nested input columns."""
+    df = tp.tibble(pid=[1, 2], Y=[1, 2]).nest('pid')
+    actual = df.mutate(
+        formula="Y ~ treat",
+        fit=tp.map(['formula', 'data'], lambda row: None),
+    )
+    assert actual.to_polars()['fit'].to_list() == [None, None]
+
+
+def test_map_infer_dtype():
+    df = tp.tibble(x=[1, 2, 3])
+    actual = df.mutate(y=tp.map(['x'], lambda row: row[0] + 1, return_dtype=None))
+    assert actual.to_polars()['y'].dtype == pl.Int64
+    assert actual.to_polars()['y'].to_list() == [2, 3, 4]

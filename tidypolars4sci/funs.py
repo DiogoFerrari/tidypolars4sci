@@ -1,5 +1,6 @@
 import polars as pl
 from .utils import (
+    _ROW_NUMBER_COLUMN,
     _as_list,
     _col_expr,
     _col_exprs,
@@ -11,7 +12,7 @@ from .utils import (
     _str_to_lit
     )
 
-__all__ = ["case_when", "n_distinct", 'map', 'round']
+__all__ = ["case_when", "n_distinct", 'map', 'round', 'row_number', 'func']
 
 def between(x, left, right):
     """
@@ -184,13 +185,19 @@ def round(x, digits = 0):
 
 def row_number():
     """
-    Return row number
+    Return a one-based row number inside mutate().
+
+    With ``by=`` or ``group_by()``, return a unique ID for each group,
+    numbered in first-appearance order. All rows in a group share its ID.
+    This grouped behavior differs from tidyverse's row_number(), which
+    numbers rows within groups; it corresponds to group IDs instead.
 
     Examples
     --------
     >>> df.mutate(row_num = tp.row_number())
+    >>> df.mutate(group_id = tp.row_number(), by = 'group')
     """
-    return pl.int_range(0, pl.len()) + 1
+    return pl.col(_ROW_NUMBER_COLUMN).alias('row_number')
 
 def case_when(*args, _default = None):
     """
@@ -222,7 +229,7 @@ def case_when(*args, _default = None):
     expr = expr.otherwise(_default)
     return expr
 
-def map(cols, _fun, return_dtype=None):
+def map(cols, _fun, return_dtype=pl.Object):
     """
     Apply function by row
 
@@ -236,16 +243,29 @@ def map(cols, _fun, return_dtype=None):
         to each row separately
 
     return_dtype : Polars data type, optional
-        Data type returned by the function. If omitted, Polars infers
-        the type from the first non-null result.
+        Data type returned by the function. Defaults to pl.Object, which
+        supports Python objects such as fitted models. Specify a native
+        type (e.g. pl.Int64 or pl.String) for subsequent Polars numeric or
+        string operations. Pass None to enable type inference, which may
+        call the function with dummy data.
     
 
     """
     cols = _as_list(cols)
 
+    # Keep Object columns separate: Polars cannot nest them in a struct.
     # Preserve the public API where _fun receives a list ordered like cols.
-    res = pl.struct(cols).map_elements(
-        lambda row: _fun(list(row.values())),
-        return_dtype=return_dtype
+    res = pl.map_batches(
+        cols,
+        lambda columns: pl.Series(
+            [_fun(list(row)) for row in zip(*columns)],
+            dtype=return_dtype,
+        ),
+        return_dtype=return_dtype,
+        is_elementwise=True,
     )
     return res
+
+def func(fn):
+    return lambda args: fn(*args)
+    
