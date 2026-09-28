@@ -1,5 +1,7 @@
+import inspect
 import polars as pl
 from .utils import (
+    _AUTO_DTYPE_ATTR,
     _ROW_NUMBER_COLUMN,
     _as_list,
     _col_expr,
@@ -229,7 +231,7 @@ def case_when(*args, _default = None):
     expr = expr.otherwise(_default)
     return expr
 
-def map(cols, _fun, return_dtype=pl.Object):
+def map(cols, _fun, return_dtype=None):
     """
     Apply function by row
 
@@ -243,15 +245,19 @@ def map(cols, _fun, return_dtype=pl.Object):
         to each row separately
 
     return_dtype : Polars data type, optional
-        Data type returned by the function. Defaults to pl.Object, which
-        supports Python objects such as fitted models. Specify a native
-        type (e.g. pl.Int64 or pl.String) for subsequent Polars numeric or
-        string operations. Pass None to enable type inference, which may
-        call the function with dummy data.
-    
+        Data type returned by the function. If None (default), the type
+        is resolved from the results inside mutate(): strings, numbers,
+        booleans, dates, etc. get the matching Polars type, and Python
+        objects such as fitted models or nested tibbles are kept as
+        pl.Object. The function is never called with dummy data.
+        Specify a type (e.g. pl.Int64, pl.String, or pl.Object) to skip
+        the resolution, or when tp.map is part of a larger expression
+        (e.g. tp.map(...) + 1) or used outside mutate().
 
     """
     cols = _as_list(cols)
+    auto = return_dtype is None
+    dtype = pl.Object if auto else return_dtype
 
     # Keep Object columns separate: Polars cannot nest them in a struct.
     # Preserve the public API where _fun receives a list ordered like cols.
@@ -259,12 +265,21 @@ def map(cols, _fun, return_dtype=pl.Object):
         cols,
         lambda columns: pl.Series(
             [_fun(list(row)) for row in zip(*columns)],
-            dtype=return_dtype,
+            dtype=dtype,
         ),
-        return_dtype=return_dtype,
-        is_elementwise=True,
+        return_dtype=dtype,
+        **_MAP_BATCHES_KWARGS,
     )
+    if auto:
+        setattr(res, _AUTO_DTYPE_ATTR, True)
     return res
+
+# is_elementwise is not available in pl.map_batches for older Polars
+_MAP_BATCHES_KWARGS = (
+    {'is_elementwise': True}
+    if 'is_elementwise' in inspect.signature(pl.map_batches).parameters
+    else {}
+)
 
 def func(fn):
     return lambda args: fn(*args)

@@ -149,12 +149,17 @@ def test_map():
         'a': [1, 10, 100],
         'b': [2, -20, 100],
         'pvalue': [0.001, 0.02, 0.2],
-        'min_ab': pl.Series([1, -20, 100], dtype=pl.Object),
-        'sig': pl.Series(['***', '*', ''], dtype=pl.Object)
+        'min_ab': [1, -20, 100],
+        'sig': ['***', '*', '']
     })
-    for name in ['min_ab', 'sig']:
-        assert actual.to_polars()[name].dtype == pl.Object
-        assert actual.to_polars()[name].to_list() == expected.to_polars()[name].to_list()
+    assert actual.equals(expected), "map dtype resolution failed"
+
+def test_map_explicit_object_dtype():
+    """An explicit pl.Object return dtype is kept"""
+    df = tp.tibble({'x': [1, 2, 3]})
+    actual = df.mutate(y = tp.map(['x'], lambda row: row[0] + 1, return_dtype = pl.Object))
+    assert actual.to_polars()['y'].dtype == pl.Object
+    assert actual.to_polars()['y'].to_list() == [2, 3, 4]
 
 def test_map_return_dtype():
     """Can set a return dtype for row-wise map"""
@@ -251,9 +256,16 @@ def test_map_nested_objects():
     actual = df.nest(['pid', 'policy_group']).mutate(
         formula="Y ~ treat",
         fit=tp.map(['formula', 'data'], lambda row: Fit(*row)),
-        nobs=tp.map(['fit'], lambda row: row[0].nobs, return_dtype=pl.Int64),
+        nobs=tp.map(['fit'], lambda row: row[0].nobs),
+        formula_up=tp.map(['formula'], lambda row: row[0].upper()),
+        data2=tp.map(['data'], lambda row: row[0]),
     )
-    assert actual.to_polars()['nobs'].to_list() == [2, 1]
+    out = actual.to_polars()
+    assert out['fit'].dtype == pl.Object
+    assert out['data2'].dtype == pl.Object
+    assert out['nobs'].dtype == pl.Int64
+    assert out['formula_up'].dtype == pl.String
+    assert out['nobs'].to_list() == [2, 1]
     assert [fit.formula for fit in actual.to_polars()['fit']] == ['Y ~ treat', 'Y ~ treat']
 
 
@@ -272,3 +284,11 @@ def test_map_infer_dtype():
     actual = df.mutate(y=tp.map(['x'], lambda row: row[0] + 1, return_dtype=None))
     assert actual.to_polars()['y'].dtype == pl.Int64
     assert actual.to_polars()['y'].to_list() == [2, 3, 4]
+
+
+def test_map_resolves_dtype_with_by():
+    """Resolved dtypes also work for grouped mutate"""
+    df = tp.tibble(g=['a', 'a', 'b'], x=[1.5, 2.5, 3.5])
+    actual = df.mutate(y=tp.map(['x'], lambda row: row[0] * 2), by='g')
+    assert actual.to_polars()['y'].dtype == pl.Float64
+    assert sorted(actual.to_polars()['y'].to_list()) == [3.0, 5.0, 7.0]

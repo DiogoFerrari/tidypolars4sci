@@ -116,6 +116,47 @@ def _repeat(x, times):
         x = [x]
     return x * times
 
+# Attribute set on expressions from tp.map whose dtype is resolved after
+# evaluation (see _auto_dtype_names and _resolve_auto_dtypes)
+_AUTO_DTYPE_ATTR = '_tp_auto_dtype'
+
+def _auto_dtype_names(args, kwargs):
+    names = [expr.meta.output_name() for expr in args
+             if getattr(expr, _AUTO_DTYPE_ATTR, False)]
+    names += [key for key, expr in kwargs.items()
+              if getattr(expr, _AUTO_DTYPE_ATTR, False)]
+    return names
+
+def _is_native_value(x):
+    import datetime, decimal
+    import numpy as np
+    if isinstance(x, (bool, int, float, str, bytes, decimal.Decimal,
+                      datetime.date, datetime.time, datetime.timedelta,
+                      np.generic)):
+        return True
+    if isinstance(x, (list, tuple)):
+        return all(v is None or _is_native_value(v) for v in x)
+    return False
+
+def _resolve_auto_dtypes(df, names):
+    """Convert Object columns to a native dtype when all values allow it"""
+    for name in names:
+        s = df.get_column(name)
+        if s.dtype != pl.Object:
+            continue
+        values = s.to_list()
+        non_null = [v for v in values if v is not None]
+        # Keep Object for Python objects (models, tibbles, ...) and all-null
+        if not non_null or not all(_is_native_value(v) for v in non_null):
+            continue
+        try:
+            native = pl.Series(name, values)
+        except Exception:
+            continue
+        if native.dtype != pl.Object:
+            df = df.with_columns(native)
+    return df
+
 def _mutate_cols(df, exprs, group_number=None):
     for expr in exprs:
         if _uses_row_number(expr):

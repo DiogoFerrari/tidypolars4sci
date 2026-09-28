@@ -8,6 +8,8 @@ from .utils import (_as_list,
                     _mutate_groups,
                     _uses_row_number,
                     _uses_by,
+                    _auto_dtype_names,
+                    _resolve_auto_dtypes,
                     _filter_kwargs_for,
                     _csv_sep_for,
                     _expand_to_full_path_or_url
@@ -521,7 +523,9 @@ class tibble(pl.DataFrame):
             out = _mutate_groups(out, exprs, by)
         else:
             out = _mutate_cols(out, exprs)
-            
+
+        out = _resolve_auto_dtypes(out, _auto_dtype_names(_as_list(args), kwargs))
+
         return out.pipe(from_polars)
 
     @property
