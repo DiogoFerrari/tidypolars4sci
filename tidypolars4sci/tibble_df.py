@@ -9,6 +9,7 @@ from .utils import (_as_list,
                     _uses_row_number,
                     _uses_by,
                     _filter_kwargs_for,
+                    _csv_sep_for,
                     _expand_to_full_path_or_url
                     )
 from .funs import map
@@ -2150,7 +2151,7 @@ class tibble(pl.DataFrame):
 
     # Exporting table 
     # ---------------
-    def save_data(self, fn, copies=None, sep=';', kws_latex=None, *args, **kws):
+    def save_data(self, fn, copies=None, sep=None, kws_latex=None, *args, **kws):
         """
         Save data based on the filename.
 
@@ -2166,7 +2167,9 @@ class tibble(pl.DataFrame):
 
         sep: str (optional)
             Set the column separator to export to text-like files (.csv,
-            .tsv, .txt, etc.)
+            .tsv, .txt, etc.). Defaults depend on the extension and match
+            the ones used by read_data(), so saved files are read back
+            with the right column types.
 
         kws_latex : dict
             Arguments of to_latex(). See tibble.to_latex()
@@ -2180,8 +2183,8 @@ class tibble(pl.DataFrame):
 
         * .csv => polars.write_csv   (uses sep=';' as default)
         * .tsv => polars.write_csv   (uses sep='\t' as default)
+        * .txt => polars.write_csv   (uses sep='\t' as default)
         * .dat => polars.write_csv   (uses sep=' ' as default)
-        * .txt => polars.write_csv   (uses sep=' ' as default)
 
         * .xls  => polars.write_excel
         * .xlsx => polars.write_excel
@@ -2212,6 +2215,7 @@ class tibble(pl.DataFrame):
         copies = [c.replace('.', '') for c in copies]
         ext_to_save = set([ext] + copies)
         kws['fn'] = fn_base
+        kws['sep'] = sep
 
         AVAILABE_FORMATS = __get_accepted_output_formats__(_print=False)
 
@@ -2288,6 +2292,7 @@ class tibble(pl.DataFrame):
 
         print(f'Saving {fn_base}...', end='') if not silently else None
         kws_reader['file'] = fn
+        kws_reader.setdefault('separator', _csv_sep_for(ext, kws.get('sep', None)))
         writer(*args, **kws_reader)
         print('done!')  if not silently else None
 
@@ -2542,6 +2547,7 @@ class tibble(pl.DataFrame):
 
         print(f'Saving {fn_base}...', end='') if not silently else None
         kws_reader['path'] = fn
+        kws_reader.setdefault('write_index', False)
         writer(*args, **kws_reader)
         print('done!')  if not silently else None
 
@@ -2556,7 +2562,6 @@ class tibble(pl.DataFrame):
         writer = super().write_parquet
         kws_reader = _filter_kwargs_for(writer, kws)
 
-        silently = kws.get("silently", False)
         ext = kws['ext']
         fn = f"{kws['fn']}.{ext}"
         fn_base = os.path.basename(fn)

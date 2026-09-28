@@ -152,6 +152,18 @@ def _filter_kwargs_for(func, kwargs):
     allowed = sig.parameters.keys()
     return {k: v for k, v in kwargs.items() if k in allowed}
 
+def _csv_sep_for(ext, sep=None):
+    # Column separator for text files, shared by save_data and read_data
+    # so that files written by one are read back correctly by the other.
+    if sep is not None:
+        return sep
+    ext = ext.lower().lstrip('.')
+    if ext in ['tsv', 'txt']:
+        return '\t'
+    if ext == 'dat':
+        return ' '
+    return ';'
+
 def _expand_to_full_path(p: Union[str, Path]) -> str:
     # """
     # Convert a relative path, '~' path, or Path object

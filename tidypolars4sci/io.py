@@ -1,5 +1,5 @@
 from .tibble_df import from_pandas, from_polars, tibble
-from .utils import _filter_kwargs_for, _expand_to_full_path_or_url
+from .utils import _filter_kwargs_for, _expand_to_full_path_or_url, _csv_sep_for
 # 
 import polars as pl
 import copy
@@ -163,9 +163,6 @@ class DATA_LABELS:
             return {'variables': variable_hits, 'values': value_hits}
         return variable_hits
 
-                    
-        
-
 class read_data():
     '''
     Read data into a tibble.
@@ -198,8 +195,10 @@ class read_data():
         List with names of the columns to return.
         Used with .sav files.
 
-    sep : str (Default ";")
-        Specify the column separator for .csv files
+    sep : str (optional)
+        Column separator for text files. Defaults depend on the
+        extension and match the ones used by tibble.save_data():
+        ";" for .csv, "\t" for .tsv and .txt, and " " for .dat
 
     big_data : bool
         If True, uses dask to load the data. Default: False
@@ -240,11 +239,12 @@ class read_data():
 
     Extension => underlying method:
 
-    * .csv => polars.read_csv (uses sep=',' as default)
+    * .csv => polars.read_csv (uses sep=';' as default)
     * .tsv => polars.read_csv (uses sep='\t' as default)
+    * .txt => polars.read_csv (uses sep='\t' as default)
     * .dat => polars.read_csv (uses sep=' ' as default)
 
-    * .txt => polars.read_csv (lines into list)
+    * .parquet => polars.read_parquet
 
     * .xls  => pandas.read_excel
     * .xlsx => pandas.read_excel
@@ -343,6 +343,9 @@ class read_data():
             elif fn_type in ACCEPTED_FILES['R files']:
                 df = self.read_Rdata(**kws)
 
+            elif fn_type in ACCEPTED_FILES['parquet']:
+                df = self.read_parquet(**kws)
+
             elif kws.get('url', None) and kws.get('credentials', None):
                 df =self.read_gspread(**kws)
 
@@ -361,25 +364,68 @@ class read_data():
         kws_reader = _filter_kwargs_for(reader, kws)
         _, ext = os.path.splitext(kws.get("fn", None))
 
-        sep = kws.get('sep', None)
-        if ext in ['.tsv', '.TSV', '.txt', '.TXT']:
-            sep =  sep or '\t'
-        elif ext in ['.dat', '.DAT']:
-            sep = sep or ' '
-        else:
-            sep = sep or ';'
-        kws_reader['separator'] = sep
+        kws_reader['separator'] = _csv_sep_for(ext, kws.get('sep', None))
         
         fn = kws.get("fn", None)
         n = kws.get("n_headers", 0)
         if n>0:
-            df  = reader(fn, skip_lines=n, has_header=False, **kws_reader)
+            df  = read_data._read_csv_typed(fn, skip_lines=n, has_header=False, **kws_reader)
             dfh = reader(fn, n_rows=n, has_header=False, **kws_reader)
             df = read_data._apply_multiheader_from_frames(df, dfh, **kws)
         else:
-            df = from_polars(reader(fn, **kws_reader))
+            df = from_polars(read_data._read_csv_typed(fn, **kws_reader))
         return df
+
+    # Files up to this size have their column types inferred from all
+    # rows; larger files use only the first CSV_INFER_ROWS rows
+    CSV_FULL_INFER_MAX_BYTES = 50 * 1024**2
+    CSV_INFER_ROWS = 1000
+
+    def _read_csv_typed(fn, **kws_reader):
+        # Read a csv with column types inferred as if from the whole file,
+        # but without scanning all rows of large files. Polars infers types
+        # from the first rows only, so a numeric column whose first rows are
+        # all missing would otherwise be read as strings.
+        if 'infer_schema_length' in kws_reader:
+            return pl.read_csv(fn, **kws_reader)
+
+        try:
+            small = os.path.getsize(fn) <= read_data.CSV_FULL_INFER_MAX_BYTES
+        except (OSError, TypeError):
+            small = False           # URLs and file-like objects
+        if small:
+            return pl.read_csv(fn, infer_schema_length=None, **kws_reader)
+
+        try:
+            df = pl.read_csv(fn, infer_schema_length=read_data.CSV_INFER_ROWS,
+                             **kws_reader)
+        except pl.exceptions.ComputeError:
+            # a value after the inferred rows does not fit the inferred
+            # type (e.g. 2.5 in a column of integers): infer from all rows
+            return pl.read_csv(fn, infer_schema_length=None, **kws_reader)
+        return read_data._cast_numeric_strings(df)
+
+    def _cast_numeric_strings(df):
+        # Convert string columns whose values are all numbers (or missing)
+        # to Int64 or Float64 ("NaN" is a valid Float64 value). Columns with
+        # only missing values are kept as they are.
+        casts = []
+        for name, dtype in df.schema.items():
+            if dtype != pl.String or df[name].null_count() == df.height:
+                continue
+            for numeric in [pl.Int64, pl.Float64]:
+                try:
+                    casts.append(df[name].cast(numeric, strict=True))
+                    break
+                except pl.exceptions.InvalidOperationError:
+                    pass
+        return df.with_columns(casts) if casts else df
     
+    def read_parquet(**kws):
+        reader = pl.read_parquet
+        kws_reader = _filter_kwargs_for(reader, kws)
+        return from_polars(reader(kws.get("fn"), **kws_reader))
+
     def read_xls(**kws):
         reader = pd.read_excel
         kws_reader = _filter_kwargs_for(reader, kws)
@@ -487,6 +533,7 @@ class read_data():
             'R files'                 : ['.Rdata', '.rdata', '.rda', '.rds'],
             'Stata files'             : ['.dta', '.DTA'],
             'SPSS files'              : ['.sav'],
+            'parquet'                 : ['.parquet', '.PARQUET'],
             'URL'                     : ['URL with any of the supported file types'],
             'Google Drive Spreadsheet': ['See documentation'],
         }
