@@ -64,8 +64,28 @@ class tibble(pl.DataFrame):
 
         # * POLARS_FMT_MAX_ROWS: set the number of rows
         # """
-        df = self.to_polars()
+        df = self._display_frame()
         return df._repr_html_()
+
+    def __str__(self):
+        return self._display_frame().__str__()
+
+    def __repr__(self):
+        return self._display_frame().__repr__()
+
+    def _display_frame(self):
+        # polars DataFrame used for printing: nested tables in object
+        # columns are shown as a compact [rows x cols] summary
+        df = self.to_polars()
+        is_table = lambda v: isinstance(v, (pl.DataFrame, pd.DataFrame))
+        for col, dtype in df.schema.items():
+            if dtype == pl.Object:
+                values = df[col].to_list()
+                if any(is_table(v) for v in values):
+                    values = [_NestedSummary(v) if is_table(v) else v
+                              for v in values]
+                    df = df.with_columns(pl.Series(col, values, dtype=pl.Object))
+        return df
 
     def __copy__(self):
         # Shallow copy
@@ -2925,6 +2945,16 @@ class tibble(pl.DataFrame):
         self = copy.copy(self)
         self.__class__ = pl.DataFrame
         return self
+
+class _NestedSummary():
+    # Display placeholder for a nested table inside a printed tibble
+    def __init__(self, df):
+        self.shape = (df.nrow, df.ncol) if isinstance(df, tibble) else df.shape
+
+    def __repr__(self):
+        return f"[{self.shape[0]}x{self.shape[1]}]"
+
+    __str__ = __repr__
 
 class TibbleGroupBy(pl.dataframe.group_by.GroupBy):
 
