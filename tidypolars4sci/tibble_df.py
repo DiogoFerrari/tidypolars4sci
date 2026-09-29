@@ -1776,46 +1776,51 @@ class tibble(pl.DataFrame):
         vars_cat = {var:label for var, label in vars.items() if
                     not self.to_polars().schema[var].is_numeric()}
 
+        # statistics are computed per variable on its own non-missing
+        # values; only rows with missing group values are dropped, since
+        # they cannot be assigned to a group
         data_num = self
-        if vars_num:
-            used_vars = list(vars_num.keys())
-            if groups is not None:
-                used_vars += list(groups.keys())
-            data_num = self.drop_null(*used_vars)
+        if groups is not None:
+            data_num = self.drop_null(*groups.keys())
 
         # compute statistics for numerical variables
-        if groups is None:
-            res = self.__descriptive_statistics__(data_num, vars_num)
-        else:
+        if not vars_num:
+            # no numerical variables requested; start from an empty table
+            # and let the categorical block (if any) fill it
             res = tibble()
-            nested = (
-                data_num
-                .select(vars_num | groups)
-                .nest(list(groups.values()))
-            )
-            for row in nested.iterrows():
-                group_values = {group: row[group] for group in groups.values()}
-                summary = (
-                    self.__descriptive_statistics__(row['data'], vars=vars_num)
-                    .mutate(**group_values)
-                    .relocate(list(groups.values()), before='Variable')
+        else:
+            if groups is None:
+                res = self.__descriptive_statistics__(data_num, vars_num)
+            else:
+                res = tibble()
+                nested = (
+                    data_num
+                    .select(vars_num | groups)
+                    .nest(list(groups.values()))
                 )
-                res = res.bind_rows(summary)
+                for row in nested.iterrows():
+                    group_values = {group: row[group] for group in groups.values()}
+                    summary = (
+                        self.__descriptive_statistics__(row['data'], vars=vars_num)
+                        .mutate(**group_values)
+                        .relocate(list(groups.values()), before='Variable')
+                    )
+                    res = res.bind_rows(summary)
 
-        n = data_num.nrow
-        res = (res
-               .mutate(null_count = 100*pl.col("null_count")/n,
-                       count = as_integer('count'))
-               .rename({"count":'N',
-                        'null_count':'Missing (%)',
-                        "mean":"Mean",
-                        'std':'Std.Dev.',
-                        'min':"Min",
-                        'max':'Max'
-                        })
-               )
-        if include_type:
-            res = res.mutate(Type='Num')
+            res = (res
+                   .mutate(null_count = 100*pl.col("null_count")/
+                           (pl.col("null_count") + pl.col("count")),
+                           count = as_integer('count'))
+                   .rename({"count":'N',
+                            'null_count':'Missing (%)',
+                            "mean":"Mean",
+                            'std':'Std.Dev.',
+                            'min':"Min",
+                            'max':'Max'
+                            })
+                   )
+            if include_type:
+                res = res.mutate(Type='Num')
 
         # compute statistics for categorical variables
         if vars_cat and include_categorical: 
@@ -1834,7 +1839,8 @@ class tibble(pl.DataFrame):
                     res_cat = res_cat.mutate(Type='Cat')
             res = res.bind_rows(res_cat)
 
-        res = res.arrange('Variable')
+        if 'Variable' in res.names:
+            res = res.arrange('Variable')
         return res
 
     def __descriptive_statistics__(self, data, vars=None):
