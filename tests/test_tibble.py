@@ -140,6 +140,38 @@ def test_fill():
     assert actual.equals(expected), "fill failed"
     assert type(actual) == tp.tibble, "fill didn't return a tibble"
 
+
+def test_fill_down_uses_value_from_row_above():
+    df = tp.tibble(x=[1, None, None, 2, None])
+
+    actual = df.fill("x", direction="down")
+    expected = tp.tibble(x=[1, 1, 1, 2, 2])
+
+    assert actual.equals(expected)
+
+
+def test_fill_can_treat_empty_strings_as_null():
+    df = tp.tibble(x=["first", "", "  ", None, "next", ""])
+
+    assert df.fill("x").equals(
+        tp.tibble(x=["first", "", "  ", "  ", "next", ""])
+    )
+    assert df.fill("x", include_empty_str=True).equals(
+        tp.tibble(x=["first", "first", "first", "first", "next", "next"])
+    )
+
+
+def test_fill_accepts_values_to_treat_as_null_by_column():
+    df = tp.tibble(
+        status=["open", "missing", "closed"],
+        score=[1, None, 3],
+    )
+
+    actual = df.fill("score", {"status": "missing"})
+    expected = tp.tibble(status=["open", "open", "closed"], score=[1, 1, 3])
+
+    assert actual.equals(expected)
+
 def test_filter():
     """Can filter multiple conditions"""
     df = tp.tibble({'x': range(10), 'y': range(10)})

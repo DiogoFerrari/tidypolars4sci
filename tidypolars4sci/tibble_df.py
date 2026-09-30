@@ -354,19 +354,25 @@ class tibble(pl.DataFrame):
         """
         return self.slice_head(n, by = by)
 
-    def fill(self, *args, direction = 'down', by = None):
+    def fill(self, *args, direction = 'down', by = None,
+             include_empty_str = False):
         """
         Fill in missing values with previous or next value.
         See also replace_null().
 
         Parameters
         ----------
-        *args : str
-            Columns to fill
+        *args : str, dict
+            Columns to fill. A dictionary maps column names to values that
+            should be treated as null before filling, for example
+            ``fill({"status": "missing"})``.
         direction : str
             Direction to fill. One of ['down', 'up', 'downup', 'updown']
         by : str, list
             Columns to group by
+        include_empty_str : bool, default=False
+            If True, treat empty and whitespace-only strings as null before
+            filling. This only affects the selected string columns.
 
         Returns
         ------- 
@@ -379,16 +385,71 @@ class tibble(pl.DataFrame):
         ...                 'b': [None, 2, None, None, 5],
         ...                 'groups': ['a', 'a', 'a', 'b', 'b']})
         >>> df.fill('a', 'b')
+        >>> df.fill({'a': -99})
         >>> df.fill('a', 'b', by = 'groups')
         >>> df.fill('a', 'b', direction = 'downup')
         """
         args = _as_list(args)
-        if len(args) == 0: return self
-        args = _col_exprs(args)
-        options = {'down': 'forward', 'up': 'backward'}
-        if direction in ['down', 'up']:
-            direction = options[direction]
-            exprs = [arg.fill_null(strategy = direction) for arg in args]
+        values_to_null = {}
+        column_args = []
+        for arg in args:
+            if isinstance(arg, dict):
+                values_to_null.update(arg)
+            else:
+                column_args.append(arg)
+
+        if values_to_null:
+            invalid_keys = [
+                name for name in values_to_null
+                if not isinstance(name, str) or name not in self.names
+            ]
+            if invalid_keys:
+                raise ValueError(
+                    "Dictionary keys must be existing column names: "
+                    f"{invalid_keys}"
+                )
+            column_args.extend(values_to_null)
+
+        if len(column_args) == 0:
+            return self
+        if not isinstance(include_empty_str, bool):
+            raise TypeError("include_empty_str must be a boolean")
+
+        args = _col_exprs(column_args)
+        data = self
+        value_as_null = [
+            pl.when(pl.col(name).eq(value))
+            .then(None)
+            .otherwise(pl.col(name))
+            .alias(name)
+            for name, value in values_to_null.items()
+        ]
+        if value_as_null:
+            data = self.mutate(*value_as_null)
+
+        if include_empty_str:
+            source_schema = self.to_polars().schema
+            selected_schema = data.to_polars().select(args).schema
+            string_columns = [
+                name for name, dtype in selected_schema.items()
+                if name in source_schema and dtype == pl.String
+            ]
+            empty_string_as_null = [
+                pl.when(pl.col(name).str.strip_chars().eq(""))
+                .then(None)
+                .otherwise(pl.col(name))
+                .alias(name)
+                for name in string_columns
+            ]
+            if empty_string_as_null:
+                data = data.mutate(*empty_string_as_null)
+
+        if direction == 'down':
+            # A downward fill propagates each non-null value to the rows
+            # beneath it, so a null takes the value from the row above.
+            exprs = [arg.forward_fill() for arg in args]
+        elif direction == 'up':
+            exprs = [arg.backward_fill() for arg in args]
         elif direction == 'downup':
             exprs = [
                 arg.fill_null(strategy = 'forward')
@@ -404,7 +465,7 @@ class tibble(pl.DataFrame):
         else:
             raise ValueError("direction must be one of down, up, downup, or updown")
 
-        return self.mutate(*exprs, by = by)
+        return data.mutate(*exprs, by = by)
 
     def filter(self, *args,
                by = None):
@@ -2338,7 +2399,7 @@ class tibble(pl.DataFrame):
                  group_rows_by = None,
                  group_title_align = 'l',
                  footnotes = None,
-                 footnotes_width = '\\linewidth',
+                 footnotes_width = None, #'\\linewidth',
                  index = False,
                  escape = False,
                  longtable = False,
