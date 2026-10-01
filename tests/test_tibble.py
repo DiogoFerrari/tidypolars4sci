@@ -103,11 +103,14 @@ def test_distinct_empty():
     assert type(actual) == tp.tibble, "distinct didn't return a tibble"
 
 def test_distinct_select():
-    """Can distinct columns"""
+    """Can distinct on selected columns while keeping all columns by default"""
     df = tp.tibble({'x': ['a', 'a', 'b'], 'y': [2, 1, 3]})
     actual = df.distinct('x').arrange('x')
-    expected = tp.tibble({'x': ['a', 'b']})
-    assert actual.equals(expected), "distinct with select failed"
+    assert actual.names == ['x', 'y'], "distinct dropped columns with keep_all=True"
+    assert actual.nrow == 2, "distinct kept duplicated rows"
+    assert actual.pull('x').to_list() == ['a', 'b'], "distinct with select failed"
+    assert actual.pull('y')[0] in (1, 2), "distinct kept a y value not paired with x == 'a'"
+    assert actual.pull('y')[1] == 3, "distinct kept a y value not paired with x == 'b'"
 
 def test_drop():
     """Can drop columns"""
