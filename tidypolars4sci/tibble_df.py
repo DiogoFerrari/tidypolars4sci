@@ -2544,7 +2544,8 @@ class tibble(pl.DataFrame):
 
         # remove \n in the table cels .... (see below)
         # cast categorical/enum to string first, str.replace_all only works on strings
-        cat_cols = self.to_polars().select(cs.categorical() | cs.enum()).columns
+        cat_cols = [c for c, dtype in self.to_polars().schema.items()
+                    if dtype == pl.Categorical or isinstance(dtype, pl.Enum)]
         if cat_cols:
             self = self.mutate(across(cat_cols, lambda col: col.cast(pl.String)))
         char_cols = self.to_polars().select(cs.string()).columns
