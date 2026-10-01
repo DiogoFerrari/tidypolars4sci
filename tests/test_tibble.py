@@ -332,6 +332,17 @@ def test_pull():
     expected = df.to_polars().get_column('x')
     assert actual.equals(expected), "pull failed"
 
+def test_pull_dict():
+    """Can use pull_dict"""
+    df = tp.tibble({'k': ['a', 'b', 'c'], 'v': [1, 2, 3]})
+    actual = df.pull_dict('k', 'v')
+    assert actual == {'a': 1, 'b': 2, 'c': 3}, "pull_dict failed"
+    assert df.pull_dict('v', 'k') == {1: 'a', 2: 'b', 3: 'c'}, "pull_dict reversed failed"
+    with pytest.raises(ValueError):
+        df.pull_dict('k', 'missing')
+    with pytest.raises(TypeError):
+        df.pull_dict(['k'], 'v')
+
 def test_relocate_before():
     """Can relocate before columns"""
     df = tp.tibble({'x': range(3), 'y': range(3), 'z': range(3)})
@@ -527,7 +538,7 @@ _TESTED_TIBBLE_METHODS = {
     "distinct", "drop", "drop_null", "equals", "fill", "filter",
     "full_join", "glimpse", "group_by", "head", "inner_join", "iterrows",
     "left_join", "mutate", "names", "ncol", "nest", "nrow",
-    "pivot_longer", "pivot_wider", "print", "pull", "relevel",
+    "pivot_longer", "pivot_wider", "print", "pull", "pull_dict", "relevel",
     "relocate", "rename", "replace", "replace_null", "save_data",
     "select", "separate", "set_names", "slice", "slice_head",
     "slice_tail", "summarise", "summarize", "tail", "tab", "to_csv",

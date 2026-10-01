@@ -822,6 +822,40 @@ class tibble(pl.DataFrame):
         
         return super().get_column(var)
 
+    def pull_dict(self, key, value):
+        """
+        Extract two columns as a dictionary
+
+        Parameters
+        ----------
+        key : str
+            Name of the column whose values become the dictionary keys.
+
+        value : str
+            Name of the column whose values become the dictionary values.
+
+        Returns
+        -------
+        dict
+            A dictionary mapping each entry of `key` to the entry of
+            `value` in the same row. If `key` has repeated values, the
+            last occurrence wins.
+
+        Examples
+        --------
+        >>> df = tp.tibble({'a': ['x', 'y'], 'b': [1, 2]})
+        >>> df.pull_dict('a', 'b')
+        {'x': 1, 'y': 2}
+        """
+        for name, arg in (('key', key), ('value', value)):
+            if not isinstance(arg, str):
+                raise TypeError(f"'{name}' must be a string with a column name, "
+                                f"got {type(arg).__name__}")
+            if arg not in self.names:
+                raise ValueError(f"Column '{arg}' not found in the tibble")
+
+        return dict(zip(self.pull(key).to_list(), self.pull(value).to_list()))
+
     def relevel(self, x, ref):
         """
         Change the reference level a string or factor and covert to factor
