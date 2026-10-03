@@ -906,3 +906,16 @@ def test_print_nested_tibble_from_another_import_of_the_package():
         for m in [m for m in sys.modules if m.startswith("tidypolars4sci")]:
             del sys.modules[m]
         sys.modules.update(saved)
+
+
+def test_replace_regex_keeps_empty_column_name():
+    """Columns named '' keep their name after a regex replace"""
+    df = tp.tibble({'': ['  a', ' b'], 'y': [1, 2]})
+    actual = df.replace({'': {"^ *": ''}}, regex=True)
+    assert actual.names == ['', 'y']
+    assert actual.pull('').to_list() == ['a', 'b']
+
+
+def test_from_pandas_keeps_empty_column_name():
+    pdf = pd.DataFrame({'': ['a', 'b'], 'y': [1, 2]})
+    assert tp.from_pandas(pdf).names == ['', 'y']

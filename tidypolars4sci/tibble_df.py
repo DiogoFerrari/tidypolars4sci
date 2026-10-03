@@ -3167,6 +3167,8 @@ def from_pandas(df):
     >>> tp.from_pandas(df)
     """
     if isinstance(df, pd.DataFrame):
+        names_pandas = list(df.columns)
+
         # First: detect problematic columns
         problematic_columns = []
         for column in df.columns:
@@ -3191,6 +3193,16 @@ def from_pandas(df):
             print(f"Error during full-frame conversion even after fixes: {e}")
             print("Falling back to converting all columns to string.")
             df = from_polars(pl.from_pandas(df.astype("string")))
+
+        # polars may rename string column names during the conversion
+        # (e.g., '' becomes 'column_0', depending on the version);
+        # restore the original names
+        new_names = [old if isinstance(old, str) else new
+                     for old, new in zip(names_pandas, df.names)]
+        if new_names != df.names and len(set(new_names)) == len(new_names):
+            pdf = df.to_polars()
+            pdf.columns = new_names
+            df = from_polars(pdf)
 
     elif isinstance(df, tibble):
         # already a tibble, nothing to do
