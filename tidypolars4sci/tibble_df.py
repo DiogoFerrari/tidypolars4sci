@@ -822,39 +822,76 @@ class tibble(pl.DataFrame):
         
         return super().get_column(var)
 
-    def pull_dict(self, key, value):
+    def pull_dict(self, key, value, sep = ' - '):
         """
-        Extract two columns as a dictionary
+        Extract columns as a dictionary
 
         Parameters
         ----------
-        key : str
-            Name of the column whose values become the dictionary keys.
+        key : str, list of str
+            Name of the column(s) whose values become the dictionary keys.
+            If a string, the keys are the values of that column. If a
+            list, the values of the listed columns are combined row by
+            row: joined into a single string when `sep` is a string, or
+            collected into a tuple when `sep` is None.
 
-        value : str
-            Name of the column whose values become the dictionary values.
+        value : str, list of str
+            Name of the column(s) whose values become the dictionary
+            values. If a string, the values are the entries of that
+            column. If a list, each dictionary value is a list with the
+            entries of the listed columns, regardless of `sep`.
+
+        sep : str, None, default=' - '
+            Separator used to join the key columns when `key` is a list.
+            If None, the keys are tuples.
 
         Returns
         -------
         dict
-            A dictionary mapping each entry of `key` to the entry of
-            `value` in the same row. If `key` has repeated values, the
-            last occurrence wins.
+            A dictionary mapping each key to the value in the same row.
+            If keys are repeated, the last occurrence wins.
 
         Examples
         --------
-        >>> df = tp.tibble({'a': ['x', 'y'], 'b': [1, 2]})
+        >>> df = tp.tibble({'a': ['x', 'y'], 'b': [1, 2], 'c': [3, 4]})
         >>> df.pull_dict('a', 'b')
         {'x': 1, 'y': 2}
+        >>> df.pull_dict(['a', 'b'], 'c')
+        {'x - 1': 3, 'y - 2': 4}
+        >>> df.pull_dict(['a', 'b'], 'c', sep=None)
+        {('x', 1): 3, ('y', 2): 4}
+        >>> df.pull_dict('a', ['b', 'c'])
+        {'x': [1, 3], 'y': [2, 4]}
         """
-        for name, arg in (('key', key), ('value', value)):
-            if not isinstance(arg, str):
-                raise TypeError(f"'{name}' must be a string with a column name, "
-                                f"got {type(arg).__name__}")
-            if arg not in self.names:
-                raise ValueError(f"Column '{arg}' not found in the tibble")
+        if sep is not None and not isinstance(sep, str):
+            raise TypeError(f"'sep' must be a string or None, got {type(sep).__name__}")
 
-        return dict(zip(self.pull(key).to_list(), self.pull(value).to_list()))
+        for name, arg in (('key', key), ('value', value)):
+            is_str = isinstance(arg, str)
+            is_list = (isinstance(arg, (list, tuple)) and len(arg) > 0
+                       and all(isinstance(a, str) for a in arg))
+            if not (is_str or is_list):
+                raise TypeError(f"'{name}' must be a string or a non-empty list "
+                                f"of strings with column names")
+            for col_name in ([arg] if is_str else arg):
+                if col_name not in self.names:
+                    raise ValueError(f"Column '{col_name}' not found in the tibble")
+
+        if isinstance(key, str):
+            keys = self.pull(key).to_list()
+        else:
+            rows = zip(*[self.pull(k).to_list() for k in key])
+            if sep is None:
+                keys = [tuple(row) for row in rows]
+            else:
+                keys = [sep.join(str(v) for v in row) for row in rows]
+
+        if isinstance(value, str):
+            values = self.pull(value).to_list()
+        else:
+            values = [list(row) for row in zip(*[self.pull(v).to_list() for v in value])]
+
+        return dict(zip(keys, values))
 
     def relevel(self, x, ref):
         """
@@ -3045,7 +3082,13 @@ class tibble(pl.DataFrame):
 class _NestedSummary():
     # Display placeholder for a nested table inside a printed tibble
     def __init__(self, df):
-        self.shape = (df.nrow, df.ncol) if isinstance(df, tibble) else df.shape
+        # tibbles block 'shape'; read it through polars so it also works for
+        # tibbles whose class comes from another import of the package
+        # (e.g., objects created before the module was reloaded)
+        if isinstance(df, pl.DataFrame):
+            self.shape = pl.DataFrame.__getattribute__(df, 'shape')
+        else:
+            self.shape = df.shape
 
     def __repr__(self):
         return f"[{self.shape[0]}x{self.shape[1]}]"

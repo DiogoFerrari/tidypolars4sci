@@ -343,8 +343,37 @@ def test_pull_dict():
     assert df.pull_dict('v', 'k') == {1: 'a', 2: 'b', 3: 'c'}, "pull_dict reversed failed"
     with pytest.raises(ValueError):
         df.pull_dict('k', 'missing')
+    with pytest.raises(ValueError):
+        df.pull_dict(['k', 'missing'], 'v')
     with pytest.raises(TypeError):
-        df.pull_dict(['k'], 'v')
+        df.pull_dict(1, 'v')
+    with pytest.raises(TypeError):
+        df.pull_dict([], 'v')
+    with pytest.raises(TypeError):
+        df.pull_dict('k', 'v', sep=1)
+
+def test_pull_dict_with_lists():
+    """pull_dict accepts lists of columns for key and value"""
+    df = tp.tibble({'k1': ['a', 'b'], 'k2': [1, 2], 'v1': [10, 20], 'v2': ['x', 'y']})
+
+    # list key: joined with sep (default ' - '), or tuple when sep is None
+    assert df.pull_dict(['k1', 'k2'], 'v1') == {'a - 1': 10, 'b - 2': 20}
+    assert df.pull_dict(['k1', 'k2'], 'v1', sep='_') == {'a_1': 10, 'b_2': 20}
+    assert df.pull_dict(['k1', 'k2'], 'v1', sep=None) == {('a', 1): 10, ('b', 2): 20}
+    assert df.pull_dict(['k2'], 'v1') == {'1': 10, '2': 20}
+    assert df.pull_dict(['k2'], 'v1', sep=None) == {(1,): 10, (2,): 20}
+
+    # list value: always a list, regardless of sep
+    assert df.pull_dict('k1', ['v1', 'v2']) == {'a': [10, 'x'], 'b': [20, 'y']}
+    assert df.pull_dict('k1', ['v1', 'v2'], sep=None) == {'a': [10, 'x'], 'b': [20, 'y']}
+    assert df.pull_dict('k1', ['v1']) == {'a': [10], 'b': [20]}
+
+    # both lists
+    assert df.pull_dict(['k1', 'k2'], ['v1', 'v2'], sep=None) == {
+        ('a', 1): [10, 'x'], ('b', 2): [20, 'y']}
+
+    # sep is ignored when both are strings
+    assert df.pull_dict('k1', 'v1', sep=None) == {'a': 10, 'b': 20}
 
 def test_relocate_before():
     """Can relocate before columns"""
@@ -859,3 +888,21 @@ def test_save_data_writes_requested_copies(tmp_path):
 
     assert (tmp_path / "data.csv").exists()
     assert (tmp_path / "data.parquet").exists()
+
+
+def test_print_nested_tibble_from_another_import_of_the_package():
+    """Nested tibbles created before the package was re-imported still print"""
+    import sys
+    old = tp.tibble(a=[1, 2], b=[3, 4])
+    saved = {m: sys.modules.pop(m) for m in list(sys.modules)
+             if m.startswith("tidypolars4sci")}
+    try:
+        import tidypolars4sci as tp2
+        assert not isinstance(old, tp2.tibble)
+        nested = pl.DataFrame({"g": ["x"]}).with_columns(
+            pl.Series("data", [old], dtype=pl.Object))
+        assert "[2x2]" in repr(tp2.from_polars(nested))
+    finally:
+        for m in [m for m in sys.modules if m.startswith("tidypolars4sci")]:
+            del sys.modules[m]
+        sys.modules.update(saved)
