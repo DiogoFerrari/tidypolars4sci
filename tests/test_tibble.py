@@ -882,6 +882,24 @@ def test_to_latex_returns_string_and_writes_file(tmp_path):
     assert "\\begin{table}" in out.read_text()
 
 
+def test_to_latex_escape():
+    df = tp.tibble(pct_x=["10%", "a_b & c"])
+    # False: nothing escaped
+    latex = df.to_latex(escape=False, scale=False)
+    assert "10%" in latex and "pct_x" in latex
+    # True: all special characters escaped
+    latex = df.to_latex(escape=True, scale=False)
+    assert "10\\%" in latex and "pct\\_x" in latex and "a\\_b \\& c" in latex
+    # list: only the selected characters escaped
+    latex = df.to_latex(escape=['%'], scale=False)
+    assert "10\\%" in latex and "pct_x" in latex and "a_b" in latex
+    # escaping does not break line breaks inside cells
+    latex = tp.tibble(x=["a_b\nc"]).to_latex(escape=True, scale=False)
+    assert "\\makecell{a\\_b\\\\c}" in latex
+    with pytest.raises(AssertionError):
+        df.to_latex(escape=['@'])
+
+
 def test_save_data_writes_requested_copies(tmp_path):
     df = tp.tibble(x=[1, 2], y=["a", "b"])
     df.save_data(str(tmp_path / "data.csv"), copies=["parquet"], silently=True)

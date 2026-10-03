@@ -28,6 +28,27 @@ import re, copy, os, inspect
 from itertools import chain
 import warnings
 from scipy.stats import norm as qnorm
+
+# LaTeX replacements for special characters (same as pandas escape=True)
+_LATEX_ESCAPES = {
+    '\\': '\\textbackslash{}',
+    '&': '\\&',
+    '%': '\\%',
+    '$': '\\$',
+    '#': '\\#',
+    '_': '\\_',
+    '{': '\\{',
+    '}': '\\}',
+    '~': '\\textasciitilde{}',
+    '^': '\\textasciicircum{}',
+}
+
+def _latex_escape(s, chars):
+    # escape only the characters in 'chars', in a single pass
+    if s is None or not chars:
+        return s
+    pattern = '[' + ''.join(re.escape(c) for c in chars) + ']'
+    return re.sub(pattern, lambda m: _LATEX_ESCAPES[m.group(0)], s)
 warnings.filterwarnings("ignore", category=pl.exceptions.MapWithoutReturnDtypeWarning)
 
 __all__ = [
@@ -2543,8 +2564,12 @@ class tibble(pl.DataFrame):
         index : bool, default=False
             Whether to include the index in the LaTeX table.
 
-        escape : bool, default=False
-            Whether to escape LaTeX special characters.
+        escape : bool or list of str, default=False
+            Whether to escape LaTeX special characters. If True, escape
+            all special characters (&, %, $, #, _, {, }, ~, ^, \\).
+            If a list of strings, escape only those characters in the
+            cell values and column headers. Ex: escape=['%'] escapes
+            only the percent sign.
 
         longtable : bool, deafult=False
             If True, table spans multiple pages
@@ -2579,6 +2604,20 @@ class tibble(pl.DataFrame):
         assert footnotes is None or isinstance(footnotes, dict),\
             "'footnote' must be a dictionary"
 
+        # escape LaTeX characters here, not in pandas, so the new line
+        # marker below is not escaped
+        escape_chars = None
+        if escape is True:
+            escape = list(_LATEX_ESCAPES)
+        elif isinstance(escape, str):
+            escape = [escape]
+        if isinstance(escape, (list, tuple, set)):
+            escape_chars = list(escape)
+            unknown = [c for c in escape_chars if c not in _LATEX_ESCAPES]
+            assert not unknown, (f"Cannot escape {unknown}. Valid characters: "
+                                 f"{list(_LATEX_ESCAPES)}")
+            escape = False
+
         # remove \n in the table cels .... (see below)
         # cast categorical/enum to string first, str.replace_all only works on strings
         cat_cols = [c for c, dtype in self.to_polars().schema.items()
@@ -2586,6 +2625,9 @@ class tibble(pl.DataFrame):
         if cat_cols:
             self = self.mutate(across(cat_cols, lambda col: col.cast(pl.String)))
         char_cols = self.to_polars().select(cs.string()).columns
+        if char_cols and escape_chars:
+            self = self.mutate(across(char_cols, lambda col: col.map_elements(
+                lambda v: _latex_escape(v, escape_chars), return_dtype=pl.String)))
         if char_cols:
             self = self.mutate(across(char_cols, lambda col: str_replace_all(col, '\n', NEW_LINE_MARKER)))
 
@@ -2605,6 +2647,14 @@ class tibble(pl.DataFrame):
 
         if header is not None:
             tabm.columns = pd.MultiIndex.from_tuples(header)
+
+        if escape_chars:
+            if isinstance(tabm.columns, pd.MultiIndex):
+                tabm.columns = pd.MultiIndex.from_tuples(
+                    [tuple(_latex_escape(str(c), escape_chars) for c in col)
+                     for col in tabm.columns])
+            else:
+                tabm.columns = [_latex_escape(str(c), escape_chars) for c in tabm.columns]
             
         tabl = (tabm
                 # .round(digits)
@@ -2986,8 +3036,9 @@ class tibble(pl.DataFrame):
                     processed_rows.append(row_text + row_sep)
                     continue
 
-                # Split the row into cells using the ampersand (&) as the delimiter.
-                cells = row_text.split('&')
+                # Split the row into cells using the ampersand (&) as the delimiter
+                # (escaped ampersands, \&, are part of the cell content).
+                cells = re.split(r'(?<!\\)&', row_text)
                 new_cells = []
                 for cell in cells:
                     # Remove only trailing whitespace from the cell.
