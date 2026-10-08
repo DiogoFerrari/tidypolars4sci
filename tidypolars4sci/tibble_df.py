@@ -1874,7 +1874,9 @@ class tibble(pl.DataFrame):
     # ----------
     def descriptive_statistics(self, vars=None, groups=None,
                                include_categorical=True,
-                               include_type=False):
+                               include_type=False,
+                               stats=['N', 'Missing (%)', 'Mean', 'Std.Dev.',
+                                      'Min', '25%', '50%', '75%', 'Max']):
         """
         Compute descriptive statistics for numerical variables and optionally
         frequency statistics for categorical variables, with support for grouping.
@@ -1901,18 +1903,29 @@ class tibble(pl.DataFrame):
             Whether to include frequency statistics for categorical variables in the output.
         include_type : bool, default False
             If True, adds a column indicating the variable type ("Num" for numerical, "Cat" for categorical).
+        stats : str or list, default ['N', 'Missing (%)', 'Mean', 'Std.Dev.', 'Min', '25%', '50%', '75%', 'Max']
+            Statistics to keep in the output, in the order given. Any subset
+            of the default names can be used; a single name can be passed as
+            a string. The statistics are always computed in full and only
+            the selected columns are returned, so the values are the same
+            regardless of the subset chosen. Statistics that do not apply
+            to the variables in the output (e.g., 'Min' when only
+            categorical variables are requested) are silently omitted.
 
         Returns
         -------
         tibble
             A tibble containing the descriptive statistics.
-            For numerical variables, the statistics include:
+            For numerical variables, the available statistics are:
 
             * N: count of non-missing values
             * Missing (%): percentage of missing values
             * Mean: average value
             * Std.Dev.: standard deviation
             * Min: minimum value
+            * 25%: first quartile
+            * 50%: median
+            * 75%: third quartile
             * Max: maximum value
 
             If grouping is specified, these statistics are computed for each group.
@@ -1925,6 +1938,18 @@ class tibble(pl.DataFrame):
         assert isinstance(groups, str) or isinstance(groups, list) or \
             isinstance(groups, dict) or groups is None, \
             "'groups' must be a string, dict, or list"
+        assert isinstance(stats, str) or isinstance(stats, (list, tuple)), \
+            "'stats' must be a string or a list"
+
+        stats_available = ['N', 'Missing (%)', 'Mean', 'Std.Dev.',
+                           'Min', '25%', '50%', '75%', 'Max']
+        if isinstance(stats, str):
+            stats = [stats]
+        stats = list(stats)
+        stats_unknown = [s for s in stats if s not in stats_available]
+        assert not stats_unknown, (
+            f"Unknown statistic(s) in 'stats': {stats_unknown}. "
+            f"Available: {stats_available}")
 
         if vars is None:
             vars = {v:v for v in self.names}
@@ -2013,6 +2038,11 @@ class tibble(pl.DataFrame):
             res = res.bind_rows(res_cat)
 
         if 'Variable' in res.names:
+            # keep only the requested statistics; grouping variables,
+            # 'Variable', and 'Type' are always kept
+            group_labels = list(groups.values()) if groups else []
+            keep = group_labels + ['Variable'] + stats + ['Type']
+            res = res.select([c for c in keep if c in res.names])
             res = res.arrange('Variable')
         return res
 
