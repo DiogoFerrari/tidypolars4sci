@@ -13,13 +13,13 @@ def labels():
     )
 
 
-def test_search_both_default(labels, capsys):
-    assert labels.search('years|retired', out='dict') == {
+def test_search_including_values(labels, capsys):
+    assert labels.search('years|retired', include_values=True, out='dict') == {
         'variables': {'age': 'Age in years'},
         'values': {'status': {2: 'Retired'}},
     }
     assert capsys.readouterr().out == ''
-    assert labels.search('years|retired') is None
+    assert labels.search('years|retired', include_values=True) is None
     printed = capsys.readouterr().out
     assert 'Age in years' in printed
     assert '2: Retired' in printed
@@ -30,22 +30,22 @@ def test_search_variable_names_and_labels(labels, regex):
     assert labels.search(regex, include_values=False, out='dict') == {
         'status': 'Employment',
     }
-    assert labels.search(regex, out='dict')['values'] == labels.values
+    assert labels.search(regex, include_values=True, out='dict')['values'] == labels.values
 
 
 @pytest.mark.parametrize('regex', ['^2$', '^retired$'])
 def test_search_value_codes_and_labels(labels, regex):
-    assert labels.search(regex, out='dict')['values'] == {
+    assert labels.search(regex, include_values=True, out='dict')['values'] == {
         'status': {2: 'Retired'},
     }
 
 
 def test_search_case_sensitive_and_no_matches(labels):
-    assert labels.search('retired', out='dict', case_sensitive=True) == {
+    assert labels.search('retired', include_values=True, out='dict', case_sensitive=True) == {
         'variables': {}, 'values': {},
     }
     assert labels.search('missing', include_values=False, out='dict') == {}
-    assert labels.search('Working', out='dict')['values'] == {
+    assert labels.search('Working', include_values=True, out='dict')['values'] == {
         'status': {1: 'Working'},
     }
 
@@ -57,20 +57,20 @@ def test_search_rejects_invalid_modes(labels, kwargs):
 
 
 def test_print_groups_values_under_variable(labels, capsys):
-    labels.search('status')
+    labels.search('status', include_values=True)
     assert capsys.readouterr().out == (
         'status       : Employment\n'
         '               Values:\n'
         '               1: Working\n'
         '               2: Retired\n\n'
     )
-    labels.search('status', include_values=False)
+    labels.search('status')
     assert capsys.readouterr().out == 'status       : Employment\n\n'
     assert labels.search('Retired', include_values=False, out='dict') == {}
 
 
 def test_print_value_only_match_has_variable_heading(labels, capsys):
-    labels.search('Retired')
+    labels.search('Retired', include_values=True)
     assert capsys.readouterr().out == (
         'status       : Employment\n'
         '               Values:\n'
@@ -80,7 +80,7 @@ def test_print_value_only_match_has_variable_heading(labels, capsys):
 
 def test_print_wraps_value_labels(labels, capsys):
     labels.values['status'] = {1: 'A long value label'}
-    labels.search('status', label_trunc=10)
+    labels.search('status', include_values=True, label_trunc=10)
     assert '               1: A long\n                  value\n                  label\n' in capsys.readouterr().out
-    labels.search('status', label_trunc=10, full_label=False)
+    labels.search('status', include_values=True, label_trunc=10, full_label=False)
     assert '               1: A long val\n' in capsys.readouterr().out

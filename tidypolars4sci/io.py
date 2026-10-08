@@ -23,6 +23,13 @@ __all__ = [
     "read_data",
    ]
 
+class _LabelDict(dict):
+    """A label dictionary with a readable fallback for missing keys."""
+
+    def __missing__(self, key):
+        return "No label(s)"
+
+
 @dataclass
 class DATA_LABELS:
     original: List[str]
@@ -44,14 +51,54 @@ class DATA_LABELS:
         for var in self.original:
             label = var if var not in self.variables else self.variables[var]
             variables_final[var] = label
-        self.variables = variables_final
+        self.variables = _LabelDict(variables_final)
 
         # Keep only variables with a non-empty value-label dict
-        self.values = {
+        self.values = _LabelDict({
             k: d
             for k, d in self.values.items()
             if isinstance(d, dict) and len(d) > 0
-        }
+        })
+
+    def __str__(self):
+        """Display variable names and labels using the search layout."""
+        return self._format_labels(self.variables, {})
+
+    def __repr__(self):
+        return str(self)
+
+    def _format_labels(self, variable_labels, value_labels_by_var,
+                       full_label=True, name_trunc=12, label_trunc=68):
+        lines_out = []
+
+        def add_match(prefix, label):
+            label_text = str(label)
+
+            if not full_label:
+                lines_out.append(f"{prefix}{label_text[:label_trunc]:<{label_trunc}}")
+                return
+
+            lines = textwrap.wrap(label_text, width=label_trunc) or [""]
+            lines_out.append(f"{prefix}{lines[0]}")
+            for line in lines[1:]:
+                lines_out.append(f"{' ' * len(prefix)}{line}")
+
+        # Include a variable heading even when only one of its values matches.
+        variables = dict.fromkeys([*variable_labels, *value_labels_by_var])
+        indent = ' ' * (name_trunc + 3)
+        for var in variables:
+            var_text = str(var)[:name_trunc]
+            add_match(f"{var_text:<{name_trunc}} : ",
+                      self.variables.get(var, var))
+            if var in value_labels_by_var:
+                lines_out.append(f"{indent}Values:")
+                value_labels = value_labels_by_var[var]
+                if isinstance(value_labels, dict):
+                    for value, value_label in value_labels.items():
+                        add_match(f"{indent}{value}: ", value_label)
+                else:
+                    add_match(indent, value_labels)
+        return '\n'.join(lines_out)
 
     def as_dict(self) -> Dict[str, Any]:
         return {
@@ -59,7 +106,7 @@ class DATA_LABELS:
             "values": self.values,
         }
 
-    def search(self, regex, include_values=True, out='print', case_sensitive=False,
+    def search(self, regex, include_values=False, out='print', case_sensitive=False,
                full_label=True, name_trunc=12, label_trunc=68):
         """
         Search variable names, value codes, and labels with a regular expression.
@@ -68,7 +115,7 @@ class DATA_LABELS:
         ----------
         regex : str
             Regular expression to search for.
-        include_values : bool, default True
+        include_values : bool, default False
             Also search and display value codes and labels when True.
             Names and labels are always searched. For values, a matching variable
             name or label includes all its values; otherwise only matching value
@@ -102,18 +149,6 @@ class DATA_LABELS:
         pattern = re.compile(regex, flags=flags)
         matches = lambda x: bool(pattern.search(str(x)))
 
-        def print_match(prefix, label):
-            label_text = str(label)
-
-            if not full_label:
-                builtins.print(f"{prefix}{label_text[:label_trunc]:<{label_trunc}}")
-                return
-
-            lines = textwrap.wrap(label_text, width=label_trunc) or [""]
-            builtins.print(f"{prefix}{lines[0]}")
-            for line in lines[1:]:
-                builtins.print(f"{' ' * len(prefix)}{line}")
-
         variable_hits = {
             var: var_label
             for var, var_label in self.variables.items()
@@ -141,21 +176,10 @@ class DATA_LABELS:
                     value_hits[var] = hits
 
         if out == 'print':
-            # Include a variable heading even when only one of its values matches.
-            variables = dict.fromkeys([*variable_hits, *value_hits])
-            indent = ' ' * (name_trunc + 3)
-            for var in variables:
-                var_text = str(var)[:name_trunc]
-                print_match(f"{var_text:<{name_trunc}} : ",
-                            self.variables.get(var, var))
-                if var in value_hits:
-                    builtins.print(f"{indent}Values:")
-                    value_labels = value_hits[var]
-                    if isinstance(value_labels, dict):
-                        for value, value_label in value_labels.items():
-                            print_match(f"{indent}{value}: ", value_label)
-                    else:
-                        print_match(indent, value_labels)
+            formatted = self._format_labels(
+                variable_hits, value_hits, full_label, name_trunc, label_trunc)
+            if formatted:
+                builtins.print(formatted)
             builtins.print('')
             return None
 
