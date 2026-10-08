@@ -292,3 +292,29 @@ def test_map_resolves_dtype_with_by():
     actual = df.mutate(y=tp.map(['x'], lambda row: row[0] * 2), by='g')
     assert actual.to_polars()['y'].dtype == pl.Float64
     assert sorted(actual.to_polars()['y'].to_list()) == [3.0, 5.0, 7.0]
+
+def test_map_unpacks_multiple_args():
+    """Functions with one parameter per column receive unpacked values"""
+    def add(a, b):
+        return a + b
+
+    df = tp.tibble({'a': [1, 2, 3], 'b': [10, 20, 30]})
+    actual = df.mutate(
+        s1 = tp.map(['a', 'b'], lambda a, b: a + b),
+        s2 = tp.map(['a', 'b'], add),
+        s3 = tp.map(['a', 'b'], lambda row: row[0] + row[1]),
+        s4 = tp.map(['a', 'b'], tp.func(add)),
+        s5 = tp.map(['a', 'b'], lambda *args: sum(args)),
+    )
+    for col in ['s1', 's2', 's3', 's4', 's5']:
+        assert actual.pull(col).to_list() == [11, 22, 33], col
+
+def test_map_unpacks_nested():
+    """Can map over nested data with multiple arguments"""
+    df = tp.tibble({'g': ['a', 'a', 'b'], 'x': [1, 2, 3]})
+    actual = (df
+              .nest('g')
+              .mutate(data = tp.map(['data', 'g'], lambda d, g: d.mutate(g2 = g)))
+              .unnest('data')
+              .arrange('x'))
+    assert actual.pull('g2').to_list() == ['a', 'a', 'b']
