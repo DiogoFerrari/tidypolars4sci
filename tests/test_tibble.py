@@ -449,6 +449,23 @@ def test_replace_without_fill_missing_labels():
     expected = tp.tibble({'x': [10, 20, 3]})
     assert actual.equals(expected), "replace without partial label fill failed"
 
+def test_replace_ignores_missing_vars():
+    """Variables in rep that are not in the data are ignored by default"""
+    df = tp.tibble({'x': [1, 2]})
+    actual = df.replace({'x': {1: 'a', 2: 'b'}, 'z': {1: 'c'}})
+    expected = tp.tibble({'x': ['a', 'b']})
+    assert actual.equals(expected), "replace didn't ignore missing variable"
+    actual = df.replace({'z': {1: 'c'}})
+    assert actual.equals(df), "replace with only missing variables changed data"
+
+def test_replace_strict_missing_vars():
+    """strict=True raises if a variable in rep is not in the data"""
+    df = tp.tibble({'x': [1, 2]})
+    with pytest.raises(ValueError, match="z"):
+        df.replace({'x': {1: 'a'}, 'z': {1: 'c'}}, strict=True)
+    actual = df.replace({'x': {1: 'a', 2: 'b'}}, strict=True)
+    assert actual.equals(tp.tibble({'x': ['a', 'b']})), "strict replace failed"
+
 def test_set_names():
     """Can set_names"""
     df = tp.tibble(x = range(3), y = range(3))

@@ -3,6 +3,7 @@ from tidypolars import col
 import polars as pl
 import polars.selectors as cs
 import math
+import pytest
 
 def test_abs():
     """Can get absolute value"""
@@ -138,12 +139,12 @@ def test_if_else():
 def test_map():
     """Can use row-wise map without explicitly setting output dtype"""
     def stars(pvalue):
-        return '***' if pvalue[0] < 0.01 else ('*' if pvalue[0] < 0.05 else '')
+        return '***' if pvalue < 0.01 else ('*' if pvalue < 0.05 else '')
 
     df = tp.tibble({'a': [1, 10, 100], 'b': [2, -20, 100], 'pvalue': [0.001, 0.02, 0.2]})
     actual = df.mutate(
-        min_ab = tp.map(['a', 'b'], lambda cols: min(cols)),
-        sig = tp.map(['pvalue'], lambda p: stars(*[p]))
+        min_ab = tp.map(['a', 'b'], lambda a, b: min(a, b)),
+        sig = tp.map(['pvalue'], stars)
     )
     expected = tp.tibble({
         'a': [1, 10, 100],
@@ -157,14 +158,14 @@ def test_map():
 def test_map_explicit_object_dtype():
     """An explicit pl.Object return dtype is kept"""
     df = tp.tibble({'x': [1, 2, 3]})
-    actual = df.mutate(y = tp.map(['x'], lambda row: row[0] + 1, return_dtype = pl.Object))
+    actual = df.mutate(y = tp.map(['x'], lambda x: x + 1, return_dtype = pl.Object))
     assert actual.to_polars()['y'].dtype == pl.Object
     assert actual.to_polars()['y'].to_list() == [2, 3, 4]
 
 def test_map_return_dtype():
     """Can set a return dtype for row-wise map"""
     df = tp.tibble({'x': [1, 2, 3]})
-    actual = df.mutate(x_chr = tp.map(['x'], lambda row: str(row[0]), return_dtype = pl.String))
+    actual = df.mutate(x_chr = tp.map(['x'], lambda x: str(x), return_dtype = pl.String))
     expected = tp.tibble({'x': [1, 2, 3], 'x_chr': ["1", "2", "3"]})
     assert actual.equals(expected), "map return_dtype failed"
 
@@ -255,10 +256,10 @@ def test_map_nested_objects():
     df = tp.tibble(pid=[1, 1, 2], policy_group=['a', 'a', 'b'], Y=[1, 2, 3])
     actual = df.nest(['pid', 'policy_group']).mutate(
         formula="Y ~ treat",
-        fit=tp.map(['formula', 'data'], lambda row: Fit(*row)),
-        nobs=tp.map(['fit'], lambda row: row[0].nobs),
-        formula_up=tp.map(['formula'], lambda row: row[0].upper()),
-        data2=tp.map(['data'], lambda row: row[0]),
+        fit=tp.map(['formula', 'data'], Fit),
+        nobs=tp.map(['fit'], lambda fit: fit.nobs),
+        formula_up=tp.map(['formula'], lambda formula: formula.upper()),
+        data2=tp.map(['data'], lambda data: data),
     )
     out = actual.to_polars()
     assert out['fit'].dtype == pl.Object
@@ -274,14 +275,14 @@ def test_map_object_inputs_none_result():
     df = tp.tibble(pid=[1, 2], Y=[1, 2]).nest('pid')
     actual = df.mutate(
         formula="Y ~ treat",
-        fit=tp.map(['formula', 'data'], lambda row: None),
+        fit=tp.map(['formula', 'data'], lambda formula, data: None),
     )
     assert actual.to_polars()['fit'].to_list() == [None, None]
 
 
 def test_map_infer_dtype():
     df = tp.tibble(x=[1, 2, 3])
-    actual = df.mutate(y=tp.map(['x'], lambda row: row[0] + 1, return_dtype=None))
+    actual = df.mutate(y=tp.map(['x'], lambda x: x + 1, return_dtype=None))
     assert actual.to_polars()['y'].dtype == pl.Int64
     assert actual.to_polars()['y'].to_list() == [2, 3, 4]
 
@@ -289,12 +290,12 @@ def test_map_infer_dtype():
 def test_map_resolves_dtype_with_by():
     """Resolved dtypes also work for grouped mutate"""
     df = tp.tibble(g=['a', 'a', 'b'], x=[1.5, 2.5, 3.5])
-    actual = df.mutate(y=tp.map(['x'], lambda row: row[0] * 2), by='g')
+    actual = df.mutate(y=tp.map(['x'], lambda x: x * 2), by='g')
     assert actual.to_polars()['y'].dtype == pl.Float64
     assert sorted(actual.to_polars()['y'].to_list()) == [3.0, 5.0, 7.0]
 
 def test_map_unpacks_multiple_args():
-    """Functions with one parameter per column receive unpacked values"""
+    """The function always receives one positional argument per column"""
     def add(a, b):
         return a + b
 
@@ -302,12 +303,28 @@ def test_map_unpacks_multiple_args():
     actual = df.mutate(
         s1 = tp.map(['a', 'b'], lambda a, b: a + b),
         s2 = tp.map(['a', 'b'], add),
-        s3 = tp.map(['a', 'b'], lambda row: row[0] + row[1]),
+        s3 = tp.map(['a', 'b'], lambda *row: row[0] + row[1]),
         s4 = tp.map(['a', 'b'], tp.func(add)),
         s5 = tp.map(['a', 'b'], lambda *args: sum(args)),
     )
     for col in ['s1', 's2', 's3', 's4', 's5']:
         assert actual.pull(col).to_list() == [11, 22, 33], col
+
+def test_map_single_column_receives_value():
+    """With one column the function receives the value, not a list"""
+    df = tp.tibble({'x': [1, 2, 3]})
+    actual = df.mutate(
+        is_list = tp.map(['x'], lambda x: isinstance(x, list)),
+        y = tp.map('x', lambda x: x + 1),
+    )
+    assert actual.pull('is_list').to_list() == [False, False, False]
+    assert actual.pull('y').to_list() == [2, 3, 4]
+
+def test_map_wrong_arity_raises():
+    """A function that does not accept one argument per column fails"""
+    df = tp.tibble({'a': [1, 2], 'b': [3, 4]})
+    with pytest.raises(Exception):
+        df.mutate(s = tp.map(['a', 'b'], lambda row: row[0] + row[1]))
 
 def test_map_unpacks_nested():
     """Can map over nested data with multiple arguments"""

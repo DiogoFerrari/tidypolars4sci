@@ -93,7 +93,7 @@ mod = (
     .mutate(
         formula = tp.case_when(tp.col('am')==1, "wt ~ hp",
                                True, 'wt ~ hp**2'),
-        fit = tp.map(['formula', 'data'], lambda row: estimate(*row))
+        fit = tp.map(['formula', 'data'], estimate)
     )
 )
 mod
@@ -115,7 +115,7 @@ in the table:
 ``` {.python exports="both" results="output code" tangle="src-nest.py" cache="yes" noweb="no" session="*Python*" linenums="1" eval="always"}
 print(
     mod
-    .mutate(aic = tp.map(['fit'], lambda row: row[0].aic))
+    .mutate(aic = tp.map(['fit'], lambda fit: fit.aic))
 )
 ```
 

@@ -378,7 +378,7 @@ def str_wrap(string, width, sep="list"):
     string = _col_expr(string) 
     s = string.str.extract_all(r"(.{1,"+f"{width}"+"})")
     if sep!='list':
-        s = map(s, lambda row: f"{sep}".join(row[0]))
+        s = map(s, lambda parts: f"{sep}".join(parts), return_dtype=pl.String)
     return s
 
         

@@ -164,9 +164,10 @@ The result can be stored in a new column of the data frame using
 `mutate()`. Here is an example of how to apply custom functions to one
 or more columns:
 
--   Note: the `*` in `*cols` is used to expand the columns. One could
-    also use `cols[0], cols[1]` instead. The index follows the order of
-    the column names provided in the list before the `lambda` function.
+-   Note: the function receives one argument per column, in the order
+    of the column names provided in the list before the function. With
+    a single column, the function receives the value itself (e.g.
+    `tp.map(['a'], lambda a: a + 1)`).
 
 ``` {.python exports="both" results="output code" tangle="src-mutate.py" cache="yes" hlines="yes" colnames="yes" noweb="no" session="*Python*" linenums="1"}
 import numpy as np
@@ -178,8 +179,8 @@ def min_of_two(col1, col2):
 
 df
 df = (df
-      .mutate(min_ab = tp.map(['a', 'b'], lambda cols: min_of_two(*cols)),
-              max_ab = tp.map(['a', 'b'], lambda cols: np.max([*cols])),
+      .mutate(min_ab = tp.map(['a', 'b'], min_of_two),
+              max_ab = tp.map(['a', 'b'], lambda a, b: np.max([a, b])),
               )
       )
 df.print()

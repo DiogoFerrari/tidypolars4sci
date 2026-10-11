@@ -7,6 +7,7 @@ from .utils import (
     _col_expr,
     _col_exprs,
     _is_constant,
+    _is_expr,
     _is_list,
     _is_iterable,
     _is_series,
@@ -241,12 +242,12 @@ def map(cols, _fun, return_dtype=None):
         A list with the name of the columns in the data to apply function
 
     _fun : a function
-        The function to apply to the columns. The function is applied
-        to each row separately. If it takes one argument per column
-        (e.g. ``lambda d, c: ...`` with ``cols=['data', 'cyl']``), the
-        row values are passed as separate arguments, in the order of
-        ``cols``. Otherwise it receives a single list with the row
-        values (e.g. ``lambda row: row[0] + row[1]``).
+        The function to apply to the columns. It is called once per row
+        and always receives one positional argument per column, in the
+        order of ``cols``. With ``cols=['data', 'cyl']`` use
+        ``lambda data, cyl: ...``; with a single column, ``cols=['x']``,
+        use ``lambda x: ...`` (the function receives the value itself,
+        not a list). A function accepting ``*args`` also works.
 
     return_dtype : Polars data type, optional
         Data type returned by the function. If None (default), the type
@@ -259,17 +260,18 @@ def map(cols, _fun, return_dtype=None):
         (e.g. tp.map(...) + 1) or used outside mutate().
 
     """
-    cols = _as_list(cols)
-    _fun = _row_caller(_fun, len(cols))
+    # A single expression (e.g. from str_wrap) cannot go through _as_list
+    cols = [cols] if _is_expr(cols) else _as_list(cols)
     auto = return_dtype is None
     dtype = pl.Object if auto else return_dtype
 
     # Keep Object columns separate: Polars cannot nest them in a struct.
-    # Preserve the public API where _fun receives a list ordered like cols.
+    # _fun always receives one positional argument per column, in the
+    # order of cols.
     res = pl.map_batches(
         cols,
         lambda columns: pl.Series(
-            [_fun(list(row)) for row in zip(*columns)],
+            [_fun(*row) for row in zip(*columns)],
             dtype=dtype,
         ),
         return_dtype=dtype,
@@ -286,22 +288,19 @@ _MAP_BATCHES_KWARGS = (
     else {}
 )
 
-def _row_caller(fn, n):
-    """Return a function that takes the list of row values.
-
-    fn receives the values unpacked when there is more than one column
-    and fn accepts that many positional arguments; otherwise it receives
-    the list itself.
-    """
-    if n <= 1:
-        return fn
-    try:
-        inspect.signature(fn).bind(*range(n))
-    except (TypeError, ValueError):
-        return fn
-    return lambda args: fn(*args)
-
 def func(fn):
-    return lambda args: fn(*args)
+    """
+    Wrap a function for use with tp.map()
+
+    tp.map() already calls the function with one positional argument
+    per column, so ``tp.func(fn)`` behaves like ``fn`` itself. It is
+    kept for backward compatibility.
+
+    Examples
+    --------
+    >>> def add(a, b): return a + b
+    >>> df.mutate(s = tp.map(['a', 'b'], tp.func(add)))
+    """
+    return lambda *args: fn(*args)
     
 

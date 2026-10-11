@@ -103,11 +103,11 @@ res = (df
        .mutate(
            model = tp.case_when(tp.col("outcome").str.contains('rate'), 'Linear', # (3)!
                                 tp.col("outcome").str.contains('vote'), 'Logit'),
-           formula = tp.map(['outcome', 'adjusted'], lambda row: create_formula(*row))) # (4)!
+           formula = tp.map(['outcome', 'adjusted'], create_formula)) # (4)!
        .mutate(
-           fit     = tp.map(['data', 'model', 'formula'], lambda row: estimate(*row)), # (5)!
-           summ    = tp.map(["fit"], lambda fit: get_summary(*fit)), # (6)!
-           pred    = tp.map(["fit", "data"], lambda row: predict(*row,
+           fit     = tp.map(['data', 'model', 'formula'], estimate), # (5)!
+           summ    = tp.map(["fit"], get_summary), # (6)!
+           pred    = tp.map(["fit", "data"], lambda fit, data: predict(fit, data,
                                                                  at={'treatment':[0, 1],
                                                                      'ideology':range(-10, 10)}))  # (7)!
        )
@@ -117,7 +117,7 @@ res = (df
 1. Nest the data by partisanship.
 2. ~crossing()~ expands (replicates) each row of the nested data for different outcomes and an indicator of whether the model uses adjustment variables.
 3. This variable indicates which model is estimated depending on the outcome variable: ~rate_conservative~ (continuous) uses a linear model; ~vote_conservative~ (binary) uses a logit model.
-4. The function ~map()~ performs a row-wise operation, creating the regression formula depending on the outcome and whether the estimation is adjusted; the star (*) used in ~*row~ unpacks the columns for the function ~create_formula()~.
+4. The function ~map()~ performs a row-wise operation, creating the regression formula depending on the outcome and whether the estimation is adjusted; the row values are passed to ~create_formula()~ as separate arguments, one per column, in the order of the list.
 5. Fit the models in each row.  
 6. Create a tidy summary (tibble) for each estimated model in the rows.  
 7. Create tables (tibbles) with predicted values at specified values of the predictors ~treatment~ and ~ideology~.

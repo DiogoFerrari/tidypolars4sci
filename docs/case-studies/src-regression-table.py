@@ -48,11 +48,11 @@ res = (df
        .mutate(
            model = tp.case_when(tp.col("outcome").str.contains('rate'), 'Linear',
                                 tp.col("outcome").str.contains('vote'), 'Logit'),
-           formula = tp.map(['outcome', 'adjusted'], lambda row: create_formula(*row)))
+           formula = tp.map(['outcome', 'adjusted'], create_formula))
        .mutate(
-           fit     = tp.map(['data', 'model', 'formula'], lambda row: estimate(*row)),
-           summ    = tp.map(["fit"], lambda fit: get_summary(*fit)),
-           pred    = tp.map(["fit", "data"], lambda row: predict(*row,
+           fit     = tp.map(['data', 'model', 'formula'], estimate),
+           summ    = tp.map(["fit"], get_summary),
+           pred    = tp.map(["fit", "data"], lambda fit, data: predict(fit, data,
                                                                  at={'treatment':[0, 1],
                                                                      'ideology':range(-10, 10)}))
        )
@@ -76,14 +76,14 @@ res
 #            # this performs a row-wise operation, creating the regression
 #            # formula depending on the outcome and if the estimation is
 #            # adjusted (the * used in *row unpacks the columns for the function)
-#            formula = tp.map(['outcome', 'adjusted'], lambda row: create_formula(*row)))
+#            formula = tp.map(['outcome', 'adjusted'], create_formula))
 #        .mutate(
 #            # fit the models
-#            fit     = tp.map(['data', 'model', 'formula'], lambda row: estimate(*row)),
+#            fit     = tp.map(['data', 'model', 'formula'], estimate),
 #            # create tidy summaries
-#            summ    = tp.map(["fit"], lambda fit: get_summary(*fit)),
+#            summ    = tp.map(["fit"], get_summary),
 #            # create table with predicted values 'at' specified values
-#            pred    = tp.map(["fit", "data"], lambda row: predict(*row,
+#            pred    = tp.map(["fit", "data"], lambda fit, data: predict(fit, data,
 #                                                                  at={'treatment':[0, 1],
 #                                                                      'ideology':range(-10, 10)}))
 #        )

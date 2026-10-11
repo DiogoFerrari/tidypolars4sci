@@ -1776,7 +1776,7 @@ class tibble(pl.DataFrame):
                 expanded[key] = val
         return expanded
 
-    def replace(self, rep, regex=False, fill_missing_labels=True):
+    def replace(self, rep, regex=False, fill_missing_labels=True, strict=False):
         """
         Replace method from polars pandas. Replaces values of a column.
 
@@ -1799,12 +1799,28 @@ class tibble(pl.DataFrame):
             original values, unmatched values are converted to strings
             and used as their own labels.
 
+        strict : bool, default False
+            Only applies when ``rep`` is keyed by variable names
+            ({<varname>:{...}}). If False, variable names in ``rep``
+            that are not in the data are ignored. If True, raise an
+            error if any of them is not in the data.
+
         Returns
         -------
         tibble
             Original tibble with values of columns replaced based on
             rep`.
         """
+        # handle variable names in rep that are not in the data
+        missing_vars = [var for var, value in rep.items()
+                        if isinstance(value, dict) and var not in self.names]
+        if missing_vars:
+            if strict:
+                raise ValueError(f"Variable(s) not found in the data: {missing_vars}")
+            rep = {var: value for var, value in rep.items() if var not in missing_vars}
+            if not rep:
+                return self
+
         if regex or not all(isinstance(value, dict) for value in rep.values()):
             engine = 'pandas'
         else:
