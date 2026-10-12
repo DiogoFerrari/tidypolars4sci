@@ -232,7 +232,7 @@ def case_when(*args, _default = None):
     expr = expr.otherwise(_default)
     return expr
 
-def map(cols, _fun, return_dtype=None):
+def map(cols, _fun, return_dtype=None, parallel=False, n_jobs=None):
     """
     Apply function by row
 
@@ -259,27 +259,63 @@ def map(cols, _fun, return_dtype=None):
         the resolution, or when tp.map is part of a larger expression
         (e.g. tp.map(...) + 1) or used outside mutate().
 
+    parallel : bool, default False
+        If True, rows are processed in parallel in separate worker
+        processes (joblib's loky backend; works on Linux, macOS, and
+        Windows). Only worth it when each call is slow (roughly 50 ms
+        or more per row), e.g. fitting a model per row: for fast
+        functions the overhead makes it slower than the default. The
+        first parallel call in a session also pays a few seconds to
+        start the workers, which are then reused by later calls.
+        The function must not rely on side effects (changes to global
+        variables, printing, etc. do not reach the main session), and
+        its inputs and results must be picklable.
+
+    n_jobs : int, optional
+        Number of worker processes when ``parallel=True``. If None
+        (default), all CPU cores but two are used (at least one), so the
+        computer stays responsive. With ``n_jobs=1`` the rows are
+        processed in the main session, without worker processes.
+
     """
     # A single expression (e.g. from str_wrap) cannot go through _as_list
     cols = [cols] if _is_expr(cols) else _as_list(cols)
     auto = return_dtype is None
     dtype = pl.Object if auto else return_dtype
+    n_jobs = _map_n_jobs(n_jobs) if parallel else 1
+
+    def apply(columns):
+        rows = list(zip(*columns))
+        if n_jobs > 1 and len(rows) > 1:
+            from joblib import Parallel, delayed
+            values = Parallel(n_jobs=n_jobs, backend='loky')(
+                delayed(_fun)(*row) for row in rows
+            )
+        else:
+            values = [_fun(*row) for row in rows]
+        return pl.Series(values, dtype=dtype)
 
     # Keep Object columns separate: Polars cannot nest them in a struct.
     # _fun always receives one positional argument per column, in the
     # order of cols.
     res = pl.map_batches(
         cols,
-        lambda columns: pl.Series(
-            [_fun(*row) for row in zip(*columns)],
-            dtype=dtype,
-        ),
+        apply,
         return_dtype=dtype,
         **_MAP_BATCHES_KWARGS,
     )
     if auto:
         setattr(res, _AUTO_DTYPE_ATTR, True)
     return res
+
+def _map_n_jobs(n_jobs):
+    # Default: all cores but two, so parallel map does not lock the machine
+    if n_jobs is None:
+        from joblib import cpu_count
+        return max(1, cpu_count() - 2)
+    if isinstance(n_jobs, bool) or not isinstance(n_jobs, int) or n_jobs < 1:
+        raise ValueError("n_jobs must be a positive integer or None")
+    return n_jobs
 
 # is_elementwise is not available in pl.map_batches for older Polars
 _MAP_BATCHES_KWARGS = (

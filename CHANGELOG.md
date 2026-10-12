@@ -8,6 +8,11 @@
 * `tibble.replace()` gains a `strict` argument. By default (`False`),
   variable names in the replacement dictionary that are not in the data
   are ignored; with `strict=True` an error is raised.
+* `tp.map()` gains `parallel` and `n_jobs` arguments. With
+  `parallel=True` the rows are processed in separate worker processes
+  (Linux, macOS, and Windows), by default using all CPU cores but two.
+  Off by default; useful only when each call is slow (e.g. fitting a
+  model per row). Adds `joblib` as a dependency.
 
 ## [0.0.1.22] 
 

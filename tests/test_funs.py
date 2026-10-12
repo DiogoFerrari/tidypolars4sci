@@ -1,5 +1,5 @@
-import tidypolars as tp
-from tidypolars import col
+import tidypolars4sci as tp
+from tidypolars4sci import col
 import polars as pl
 import polars.selectors as cs
 import math
@@ -335,3 +335,58 @@ def test_map_unpacks_nested():
               .unnest('data')
               .arrange('x'))
     assert actual.pull('g2').to_list() == ['a', 'a', 'b']
+
+def test_map_parallel_matches_serial():
+    """parallel=True gives the same results and dtypes as the default"""
+    def add(a, b):
+        return a + b
+
+    df = tp.tibble({'g': ['a', 'a', 'b', 'b'], 'a': [1, 2, 3, 4], 'b': [10, 20, 30, 40]})
+    kwargs = dict(
+        s1 = lambda p: tp.map(['a', 'b'], lambda a, b: a + b, parallel=p, n_jobs=2),
+        s2 = lambda p: tp.map(['a', 'b'], add, parallel=p, n_jobs=2),
+        s3 = lambda p: tp.map('a', lambda a: str(a), parallel=p, n_jobs=2),
+    )
+    serial = df.mutate(**{k: f(False) for k, f in kwargs.items()})
+    parallel = df.mutate(**{k: f(True) for k, f in kwargs.items()})
+    assert parallel.equals(serial)
+    assert parallel.to_polars()['s1'].dtype == pl.Int64
+    assert parallel.to_polars()['s3'].dtype == pl.String
+
+def test_map_parallel_with_by():
+    """parallel=True works in grouped mutate"""
+    def add(a, b):
+        return a + b
+
+    df = tp.tibble({'g': ['a', 'a', 'b', 'b'], 'a': [1, 2, 3, 4], 'b': [10, 20, 30, 40]})
+    grouped = df.mutate(s = tp.map(['a', 'b'], add, parallel=True, n_jobs=2), by='g')
+    assert grouped.arrange('a').pull('s').to_list() == [11, 22, 33, 44]
+
+def test_map_parallel_nested():
+    """parallel=True works with nested tibbles as input and output"""
+    df = tp.tibble({'g': ['a', 'a', 'b'], 'x': [1, 2, 3]})
+    actual = (df
+              .nest('g')
+              .mutate(n = tp.map('data', lambda d: d.nrow, parallel=True, n_jobs=2),
+                      data = tp.map(['data', 'g'], lambda d, g: d.mutate(g2 = g),
+                                    parallel=True, n_jobs=2)))
+    assert actual.arrange('g').pull('n').to_list() == [2, 1]
+    assert actual.unnest('data').arrange('x').pull('g2').to_list() == ['a', 'a', 'b']
+
+def test_map_parallel_empty():
+    """parallel=True works with no rows"""
+    df = tp.tibble({'x': [1]}).filter(col('x') > 1)
+    actual = df.mutate(y = tp.map('x', lambda x: x + 1, parallel=True, n_jobs=2))
+    assert actual.nrow == 0
+
+def test_map_parallel_n_jobs():
+    """By default, parallel map uses all cores but two (at least one)"""
+    from joblib import cpu_count
+    from tidypolars4sci.funs import _map_n_jobs
+    assert _map_n_jobs(None) == max(1, cpu_count() - 2)
+    assert _map_n_jobs(3) == 3
+    for bad in [0, -1, 2.5, True, 'all']:
+        with pytest.raises(ValueError):
+            _map_n_jobs(bad)
+    with pytest.raises(ValueError):
+        tp.map('x', lambda x: x, parallel=True, n_jobs=0)

@@ -177,6 +177,7 @@ The module provides many other default functions to compute summary statistics o
 The function ~map()~ can be used to apply user-defined custom functions. The result can be stored in a new column of the data frame using ~mutate()~. Here is an example of how to apply custom functions to one or more columns:
 
 - Note: the function receives one argument per column, in the order of the column names provided in the list before the function. With a single column, the function receives the value itself (e.g. ~tp.map(['a'], lambda a: a + 1)~).
+- Note: for slow functions (e.g. fitting a model per row), use ~tp.map(..., parallel=True)~ to process the rows in parallel worker processes. By default it uses all CPU cores but two; set ~n_jobs~ to change it. For fast functions, keep the default (~parallel=False~), since the overhead makes the parallel version slower.
 
 
 #+BEGIN_SRC python :exports both :results output code :tangle src-mutate.py :cache yes :hlines yes :colnames yes :noweb no :session *Python* :linenums 1
