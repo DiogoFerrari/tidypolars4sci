@@ -1,4 +1,4 @@
-import tidypolars as tp
+import tidypolars4sci as tp
 # ADD TP to all selects
 def _repeat(x, times):
     if not isinstance(x, list):

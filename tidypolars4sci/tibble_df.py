@@ -1558,16 +1558,24 @@ class tibble(pl.DataFrame):
 
         return from_polars(df_target.select(df_target.columns))
 
-    def crossing(self, *args, **kwargs):
+    def crossing(self, *args, flatten_dict=False, **kwargs):
         """
         Expands the existing tibble for each value of the
         variables used in the `crossing()` argument. See Returns.
 
         Parameters
         ----------
-        *args : list
-            One unamed list is accepted. 
-        
+        *args : list or dict
+            One unamed list is accepted. Dictionaries are also accepted:
+            each key will be a variable name and its values will be
+            in the expanded tibble. See `flatten_dict`.
+
+        flatten_dict : bool
+            If False (default), list elements in the dictionary values
+            are kept as list elements of the rows (e.g., [['a'], ['x', 'z']]
+            crosses ['a'] and ['x', 'z']). If True, nested lists are
+            flattened (e.g., [['a'], ['x', 'z']] crosses 'a', 'x', and 'z').
+
         *kwargs : list
             keyword will be the variable name, and the values in the list
             will be in the expanded tibble
@@ -1604,9 +1612,48 @@ class tibble(pl.DataFrame):
         │   2     5   b   │
         │   2     5   c   │
         └─────────────────┘
+        >>> d = {'d1': [2, 3], 'd2': [['a'], ['x', 'z']]}
+        >>> tp.tibble().crossing(d)
+        shape: (4, 2)
+        ┌──────────────────────┐
+        │  d1   d2             │
+        │ i64   list[str]      │
+        ╞══════════════════════╡
+        │   2   ["a"]          │
+        │   2   ["x", "z"]     │
+        │   3   ["a"]          │
+        │   3   ["x", "z"]     │
+        └──────────────────────┘
+        >>> tp.tibble().crossing(d, flatten_dict=True)
+        shape: (6, 2)
+        ┌───────────┐
+        │  d1   d2  │
+        │ i64   str │
+        ╞═══════════╡
+        │   2   a   │
+        │   2   x   │
+        │   2   z   │
+        │   3   a   │
+        │   3   x   │
+        │   3   z   │
+        └───────────┘
         """
-        out = self.mutate(*args, **kwargs).to_polars()
-        for var,_ in kwargs.items():
+        crossing_vars = {}
+        exprs = []
+        for arg in args:
+            if isinstance(arg, dict):
+                for var, values in arg.items():
+                    if flatten_dict:
+                        # [['a'], ['x', 'z']] crosses 'a', 'x', and 'z'
+                        values = list(chain.from_iterable(
+                            v if isinstance(v, (list, tuple)) else [v]
+                            for v in _as_list(values)))
+                    crossing_vars[var] = values
+            else:
+                exprs.append(arg)
+        crossing_vars.update(kwargs)
+        out = self.mutate(*exprs, **crossing_vars).to_polars()
+        for var,_ in crossing_vars.items():
             out = out.explode(var)
         return out.pipe(from_polars)
 

@@ -94,6 +94,31 @@ def test_count_one_arg():
     expected = tp.tibble({'x': ['a', 'b'], 'n': [2, 1]})
     assert actual.equals(expected), "count with one arg failed"
 
+def test_crossing_dict():
+    """Can cross values in a dict, keeping list elements"""
+    d = {'d1': [2, 3], 'd2': [['a'], ['x', 'z']]}
+    actual = tp.tibble().crossing(d)
+    expected = tp.tibble({'d1': [2, 2, 3, 3],
+                          'd2': [['a'], ['x', 'z'], ['a'], ['x', 'z']]})
+    assert actual.equals(expected), "crossing with dict failed"
+
+def test_crossing_dict_flatten():
+    """Can cross values in a dict, flattening list elements"""
+    d = {'d1': [2, 3], 'd2': [['a'], ['x', 'z']]}
+    actual = tp.tibble().crossing(d, flatten_dict=True)
+    expected = tp.tibble({'d1': [2, 2, 2, 3, 3, 3],
+                          'd2': ['a', 'x', 'z', 'a', 'x', 'z']})
+    assert actual.equals(expected), "crossing with flatten_dict failed"
+
+def test_crossing_dict_and_kwargs():
+    """Can cross existing rows with a dict and kwargs"""
+    df = tp.tibble({'a': [1, 2]})
+    actual = df.crossing({'d': ['x', 'y']}, e = [0, 1])
+    expected = tp.tibble({'a': [1, 1, 1, 1, 2, 2, 2, 2],
+                          'd': ['x', 'x', 'y', 'y'] * 2,
+                          'e': [0, 1] * 4})
+    assert actual.equals(expected), "crossing with dict and kwargs failed"
+
 def test_distinct_empty():
     """Can distinct columns"""
     df = tp.tibble({'x': ['a', 'a', 'b'], 'y': ['a', 'a', 'b']})

@@ -1,5 +1,5 @@
-import tidypolars as tp
-from tidypolars import col
+import tidypolars4sci as tp
+from tidypolars4sci import col
 
 def test_group_filter():
     """Can filter by group"""
